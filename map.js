@@ -165,6 +165,50 @@ const provincesLayer = new ol.layer.Vector({
 });
 
 // ===============================
+// Слой подписей ID
+// ===============================
+
+let showProvinceIds = false;
+
+const provinceLabelsLayer = new ol.layer.Vector({
+
+    source: provincesSource,
+
+    style: function(feature) {
+
+        // Если режим выключен — ничего не рисуем
+        if (!showProvinceIds) {
+            return null;
+        }
+
+        return new ol.style.Style({
+
+            text: new ol.style.Text({
+
+                text: String(feature.get('id')),
+
+                font: '14px Arial',
+
+                fill: new ol.style.Fill({
+                    color: '#000000'
+                }),
+
+                stroke: new ol.style.Stroke({
+                    color: '#ffffff',
+                    width: 3
+                }),
+
+                overflow: true
+
+            })
+
+        });
+
+    }
+
+});
+
+// ===============================
 // Карта
 // ===============================
 
@@ -174,7 +218,8 @@ const map = new ol.Map({
 
     layers: [
         imageLayer,
-        provincesLayer
+        provincesLayer,
+        provinceLabelsLayer
     ],
 
     view: new ol.View({
@@ -204,6 +249,35 @@ const map = new ol.Map({
         extent: imageExtent
 
     })
+
+});
+
+// ===============================
+// Кнопка отображения ID
+// ===============================
+
+const idButton = document.createElement('button');
+
+idButton.innerHTML = 'ID';
+
+idButton.style.position = 'absolute';
+idButton.style.top = '10px';
+idButton.style.left = '10px';
+idButton.style.zIndex = '1000';
+
+idButton.style.padding = '6px 10px';
+idButton.style.background = 'white';
+idButton.style.border = '1px solid black';
+idButton.style.cursor = 'pointer';
+
+document.body.appendChild(idButton);
+
+// Переключение отображения ID
+idButton.addEventListener('click', function() {
+
+    showProvinceIds = !showProvinceIds;
+
+    provinceLabelsLayer.changed();
 
 });
 
