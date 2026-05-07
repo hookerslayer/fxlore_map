@@ -23,6 +23,13 @@ const imageExtent = [
 ];
 
 // ===============================
+// Состояния провинций
+// ===============================
+
+let hoveredFeature = null;
+let selectedFeature = null;
+
+// ===============================
 // PNG слой
 // ===============================
 
@@ -59,7 +66,11 @@ const provincesSource = new ol.source.Vector({
 
 });
 
-// Стиль провинций по умолчанию
+// ===============================
+// Стили
+// ===============================
+
+// Обычный стиль
 const defaultProvinceStyle = new ol.style.Style({
 
     fill: new ol.style.Fill({
@@ -77,7 +88,7 @@ const defaultProvinceStyle = new ol.style.Style({
 
 });
 
-// Подсветка при наведении
+// Наведение
 const hoverProvinceStyle = new ol.style.Style({
 
     fill: new ol.style.Fill({
@@ -95,7 +106,7 @@ const hoverProvinceStyle = new ol.style.Style({
 
 });
 
-// Подсветка при клике
+// Выделение
 const selectedProvinceStyle = new ol.style.Style({
 
     fill: new ol.style.Fill({
@@ -113,6 +124,10 @@ const selectedProvinceStyle = new ol.style.Style({
 
 });
 
+// ===============================
+// Слой провинций
+// ===============================
+
 const provincesLayer = new ol.layer.Vector({
 
     source: provincesSource,
@@ -121,12 +136,16 @@ const provincesLayer = new ol.layer.Vector({
 
         // Выбранная провинция
         if (feature === selectedFeature) {
+
             return selectedProvinceStyle;
+
         }
 
         // Наведение мыши
         if (feature === hoveredFeature) {
+
             return hoverProvinceStyle;
+
         }
 
         // Обычный стиль
@@ -151,35 +170,40 @@ const map = new ol.Map({
 
     view: new ol.View({
 
-    projection: 'EPSG:3857',
+        projection: 'EPSG:3857',
 
-    center: ol.extent.getCenter(imageExtent),
+        center: ol.extent.getCenter(imageExtent),
 
-    resolutions: [
+        resolutions: [
 
-        16,
-        8,
-        4,
-        2,
-        1,
-        0.5,
-        0.25,
-        0.125
+            16,
+            8,
+            4,
+            2,
+            1,
+            0.5,
+            0.25,
+            0.125
 
-    ],
+        ],
 
-    zoom: 4,
+        zoom: 4,
 
-    extent: imageExtent
+        minZoom: 0,
+        maxZoom: 7,
 
-})
+        extent: imageExtent
+
+    })
 
 });
 
-// Подсветка при наведении мыши
+// ===============================
+// Подсветка при наведении
+// ===============================
+
 map.on('pointermove', function(event) {
 
-    // Feature под курсором
     const feature = map.forEachFeatureAtPixel(
 
         event.pixel,
@@ -190,12 +214,11 @@ map.on('pointermove', function(event) {
 
     );
 
-    // Если feature изменилась
+    // Обновляем только если изменилось
     if (feature !== hoveredFeature) {
 
         hoveredFeature = feature;
 
-        // Перерисовываем слой
         provincesLayer.changed();
 
     }
@@ -262,7 +285,7 @@ map.on('click', function(event) {
 
     );
 
-    // Выбрали провинцию
+    // Клик по провинции
     if (feature) {
 
         selectedFeature = feature;
@@ -285,7 +308,6 @@ map.on('click', function(event) {
 
     }
 
-    // Обновляем стили
     provincesLayer.changed();
 
 });
