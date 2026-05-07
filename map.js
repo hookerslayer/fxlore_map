@@ -1,39 +1,40 @@
-// Размер изображения PNG
+// Размер PNG
 const width = 4960;
 const height = 7015;
 
-// Параметры из PGW файла
+// Параметры из PGW
 const pixelSizeX = 2.370967741935;
 const pixelSizeY = -2.370919458304;
 
 const topLeftX = -760.292207764065;
 const topLeftY = 1579.390922422695;
 
-// Вычисляем реальные GIS-границы изображения
+// Вычисляем extent PNG
 const imageExtent = [
+
     topLeftX,
+
     topLeftY + height * pixelSizeY,
+
     topLeftX + width * pixelSizeX,
+
     topLeftY
+
 ];
 
-// Создаем кастомную проекцию
-const projection = new ol.proj.Projection({
-    code: 'fantasy-map',
-    units: 'pixels',
-    extent: imageExtent
-});
+// ===============================
+// PNG слой
+// ===============================
 
-// Слой PNG карты
 const imageLayer = new ol.layer.Image({
 
     source: new ol.source.ImageStatic({
 
         url: './karta_morprov.png',
 
-        projection: projection,
-
         imageExtent: imageExtent,
+
+        projection: 'EPSG:3857',
 
         interpolate: false
 
@@ -41,33 +42,48 @@ const imageLayer = new ol.layer.Image({
 
 });
 
-// Слой провинций
+// ===============================
+// GeoJSON слой
+// ===============================
+
 const provincesLayer = new ol.layer.Vector({
 
     source: new ol.source.Vector({
 
         url: './provinces.geojson',
 
-        format: new ol.format.GeoJSON()
+        format: new ol.format.GeoJSON({
+
+            dataProjection: 'EPSG:3857',
+            featureProjection: 'EPSG:3857'
+
+        })
 
     }),
 
     style: new ol.style.Style({
 
         stroke: new ol.style.Stroke({
+
             color: 'red',
             width: 1
+
         }),
 
         fill: new ol.style.Fill({
-            color: 'rgba(255, 0, 0, 0.5)'
+
+            color: 'rgba(255,0,0,0.5)'
+
         })
 
     })
 
 });
 
-// Создаем карту
+// ===============================
+// Карта
+// ===============================
+
 const map = new ol.Map({
 
     target: 'map',
@@ -79,7 +95,7 @@ const map = new ol.Map({
 
     view: new ol.View({
 
-        projection: projection,
+        projection: 'EPSG:3857',
 
         center: ol.extent.getCenter(imageExtent),
 
@@ -97,7 +113,7 @@ const map = new ol.Map({
 });
 
 // ===============================
-// КООРДИНАТЫ КУРСОРА
+// Координаты курсора
 // ===============================
 
 const coordsDiv = document.getElementById('coords');
@@ -106,16 +122,16 @@ map.on('pointermove', function(event) {
 
     const coords = event.coordinate;
 
-    // GIS координаты
     const x = Math.round(coords[0]);
     const y = Math.round(coords[1]);
 
-    coordsDiv.innerHTML = `X: ${x} | Y: ${y}`;
+    coordsDiv.innerHTML =
+        `X: ${x} | Y: ${y}`;
 
 });
 
 // ===============================
-// POPUP ПРОВИНЦИЙ
+// Popup
 // ===============================
 
 const popupElement = document.createElement('div');
@@ -125,7 +141,6 @@ popupElement.style.background = 'white';
 popupElement.style.padding = '8px';
 popupElement.style.border = '1px solid black';
 popupElement.style.borderRadius = '6px';
-popupElement.style.minWidth = '100px';
 
 const popup = new ol.Overlay({
 
@@ -141,12 +156,20 @@ const popup = new ol.Overlay({
 
 map.addOverlay(popup);
 
+// ===============================
 // Клик по провинции
+// ===============================
+
 map.on('click', function(event) {
 
     const feature = map.forEachFeatureAtPixel(
+
         event.pixel,
-        feature => feature
+
+        function(feature) {
+            return feature;
+        }
+
     );
 
     if (feature) {
