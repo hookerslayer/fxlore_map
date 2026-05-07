@@ -24,15 +24,11 @@ const imageLayer = new ol.layer.Image({
 });
 
 // Слой провинций
+const provincesSource = new ol.source.Vector();
+
 const provincesLayer = new ol.layer.Vector({
 
-    source: new ol.source.Vector({
-
-        url: './provinces.geojson',
-
-        format: new ol.format.GeoJSON()
-
-    }),
+    source: provincesSource,
 
     style: new ol.style.Style({
 
@@ -48,6 +44,91 @@ const provincesLayer = new ol.layer.Vector({
     })
 
 });
+
+// Загрузка GeoJSON
+fetch('./provinces.geojson')
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        // Параметры трансформации
+        const offsetX = 1027.5;
+        const offsetY = 1027.5;
+
+        const angle = Math.PI / 2;
+
+        // Преобразуем все объекты
+        const transformedFeatures = data.features.map(feature => {
+
+            // Клонируем объект
+            const newFeature = structuredClone(feature);
+
+            // Обрабатываем координаты
+            newFeature.geometry.coordinates =
+                newFeature.geometry.coordinates.map(polygon =>
+
+                    polygon.map(ring =>
+
+                        ring.map(point => {
+
+                            const x = point[0];
+                            const y = point[1];
+
+                            // Масштабирование + смещение
+                            const px = (x - (-760.292207764065)) / 2.370967741935;
+
+                            const py = (y - 1579.390922422695) / (-2.370919458304);
+
+                            // Смещение относительно центра
+                            const dx = px - width / 2;
+                            const dy = py - height / 2;
+
+                            // Поворот
+                            const cos = Math.cos(angle);
+                            const sin = Math.sin(angle);
+
+                            const rotatedX =
+                                cos * dx - sin * dy + width / 2;
+
+                            const rotatedY =
+                                sin * dx + cos * dy + height / 2;
+
+                            // Финальное смещение
+                            const finalX = rotatedX + offsetX;
+                            const finalY = rotatedY + offsetY;
+
+                            // OpenLayers использует [x, y]
+                            return [finalX, finalY];
+
+                        })
+
+                    )
+
+                );
+
+            return newFeature;
+
+        });
+
+        // Создаем GeoJSON объект
+        const transformedGeoJSON = {
+            type: 'FeatureCollection',
+            features: transformedFeatures
+        };
+
+        // Читаем features
+        const features = new ol.format.GeoJSON().readFeatures(
+            transformedGeoJSON,
+            {
+                featureProjection: projection
+            }
+        );
+
+        // Добавляем в source
+        provincesSource.addFeatures(features);
+
+    });
 
 // Создаем карту
 const map = new ol.Map({
@@ -91,53 +172,43 @@ map.on('pointermove', function(event) {
     coordsDiv.innerHTML = `X: ${x} | Y: ${y}`;
 });
 
-// Создаем HTML элемент popup
+// Popup
 const popupElement = document.createElement('div');
 
-popupElement.style.position = 'absolute';
 popupElement.style.background = 'white';
-popupElement.style.padding = '6px 10px';
+popupElement.style.padding = '8px';
 popupElement.style.border = '1px solid black';
 popupElement.style.borderRadius = '6px';
-popupElement.style.minWidth = '80px';
 
-// Создаем overlay
 const popup = new ol.Overlay({
     element: popupElement,
     positioning: 'bottom-center',
-    stopEvent: false,
     offset: [0, -10]
 });
 
 map.addOverlay(popup);
 
-// Клик по карте
+// Клик по провинции
 map.on('click', function(event) {
 
-    // Ищем объект под курсором
     const feature = map.forEachFeatureAtPixel(
         event.pixel,
-        function(feature) {
-            return feature;
-        }
+        feature => feature
     );
 
-    // Если объект найден
     if (feature) {
 
-        // Получаем ID
         const provinceId = feature.get('id');
 
-        // Текст popup
-        popupElement.innerHTML = `Province ID: ${provinceId}`;
+        popupElement.innerHTML =
+            `Province ID: ${provinceId}`;
 
-        // Показываем popup
         popup.setPosition(event.coordinate);
-    }
 
-    // Если кликнули мимо
-    else {
+    } else {
+
         popup.setPosition(undefined);
+
     }
 
 });
