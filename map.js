@@ -156,28 +156,37 @@ const provincesLayer = new ol.layer.Vector({
     style: function(feature) {
     
         const featureId = feature.get('id');
-
-    // Найденная через поиск провинция
-    if (
-        searchedProvinceId !== null &&
-        featureId === searchedProvinceId
-    ) {
     
-        return searchProvinceStyle;
+        // =========================
+        // Провинция из поиска
+        // =========================
     
-    }
+        if (
+            searchedProvinceId !== null &&
+            featureId === searchedProvinceId
+        ) {
     
-    // Выбранная провинция
-    if (
-        selectedProvinceId !== null &&
-        featureId === selectedProvinceId
-    ) {
+            return searchProvinceStyle;
     
-        return selectedProvinceStyle;
+        }
     
-    }
+        // =========================
+        // Выбранная провинция
+        // =========================
     
+        if (
+            selectedProvinceId !== null &&
+            featureId === selectedProvinceId
+        ) {
+    
+            return selectedProvinceStyle;
+    
+        }
+    
+        // =========================
         // Наведение мыши
+        // =========================
+    
         if (
             hoveredProvinceId !== null &&
             featureId === hoveredProvinceId
@@ -186,8 +195,11 @@ const provincesLayer = new ol.layer.Vector({
             return hoverProvinceStyle;
     
         }
-    
+        
+        // =========================
         // Обычный стиль
+        // =========================
+    
         return defaultProvinceStyle;
     
     }
