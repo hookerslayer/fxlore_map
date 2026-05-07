@@ -125,6 +125,26 @@ const selectedProvinceStyle = new ol.style.Style({
 
 });
 
+// Поиск провинции
+const searchProvinceStyle = new ol.style.Style({
+
+    fill: new ol.style.Fill({
+
+        color: 'rgba(0,0,0,0)'
+
+    }),
+
+    stroke: new ol.style.Stroke({
+
+        color: '#ff0000',
+        width: 3
+
+    })
+
+});
+
+let searchedProvinceId = null;
+
 // ===============================
 // Слой провинций
 // ===============================
@@ -137,15 +157,25 @@ const provincesLayer = new ol.layer.Vector({
     
         const featureId = feature.get('id');
 
-        // Выбранная провинция
-        if (
-            selectedProvinceId !== null &&
-            featureId === selectedProvinceId
-        ) {
+    // Найденная через поиск провинция
+    if (
+        searchedProvinceId !== null &&
+        featureId === searchedProvinceId
+    ) {
     
-            return selectedProvinceStyle;
+        return searchProvinceStyle;
     
-        }
+    }
+    
+    // Выбранная провинция
+    if (
+        selectedProvinceId !== null &&
+        featureId === selectedProvinceId
+    ) {
+    
+        return selectedProvinceStyle;
+    
+    }
     
         // Наведение мыши
         if (
@@ -205,6 +235,99 @@ const provinceLabelsLayer = new ol.layer.Vector({
         });
 
     }
+
+});
+
+// ===============================
+// Поиск провинции
+// ===============================
+
+const searchInput = document.createElement('input');
+
+searchInput.type = 'text';
+
+searchInput.placeholder = 'Province ID';
+
+searchInput.style.position = 'absolute';
+searchInput.style.top = '10px';
+searchInput.style.left = '140px';
+
+searchInput.style.zIndex = '1000';
+
+searchInput.style.padding = '6px';
+searchInput.style.border = '1px solid black';
+
+document.body.appendChild(searchInput);
+
+const searchButton = document.createElement('button');
+
+searchButton.innerHTML = 'Find';
+
+searchButton.style.position = 'absolute';
+searchButton.style.top = '10px';
+searchButton.style.left = '290px';
+
+searchButton.style.zIndex = '1000';
+
+searchButton.style.padding = '6px 10px';
+searchButton.style.background = 'white';
+searchButton.style.border = '1px solid black';
+searchButton.style.cursor = 'pointer';
+
+document.body.appendChild(searchButton);
+
+searchButton.addEventListener('click', function() {
+
+    const searchId = searchInput.value.trim();
+
+    // Сбрасываем прошлый поиск
+    searchedProvinceId = null;
+
+    if (!searchId) {
+
+        provincesLayer.changed();
+
+        return;
+
+    }
+
+    // Ищем province
+    const features = provincesSource.getFeatures();
+
+    const foundFeature = features.find(function(feature) {
+
+        return String(feature.get('id')) === searchId;
+
+    });
+
+    // Если нашли
+    if (foundFeature) {
+
+        searchedProvinceId = searchId;
+
+        // Геометрия
+        const geometry = foundFeature.getGeometry();
+
+        // Центр провинции
+        const center =
+            ol.extent.getCenter(
+                geometry.getExtent()
+            );
+
+        // Перемещаем карту
+        map.getView().animate({
+
+            center: center,
+
+            duration: 700,
+
+            zoom: 3
+
+        });
+
+    }
+
+    provincesLayer.changed();
 
 });
 
