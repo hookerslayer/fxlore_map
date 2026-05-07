@@ -46,37 +46,93 @@ const imageLayer = new ol.layer.Image({
 // GeoJSON слой
 // ===============================
 
-const provincesLayer = new ol.layer.Vector({
+const provincesSource = new ol.source.Vector({
 
-    source: new ol.source.Vector({
+    url: './provinces.geojson',
 
-        url: './provinces.geojson',
+    format: new ol.format.GeoJSON({
 
-        format: new ol.format.GeoJSON({
+        dataProjection: 'EPSG:3857',
+        featureProjection: 'EPSG:3857'
 
-            dataProjection: 'EPSG:3857',
-            featureProjection: 'EPSG:3857'
+    })
 
-        })
+});
+
+// Стиль провинций по умолчанию
+const defaultProvinceStyle = new ol.style.Style({
+
+    fill: new ol.style.Fill({
+
+        color: 'rgba(0,0,0,0)'
 
     }),
 
-    style: new ol.style.Style({
+    stroke: new ol.style.Stroke({
 
-        stroke: new ol.style.Stroke({
-
-            color: 'red',
-            width: 1
-
-        }),
-
-        fill: new ol.style.Fill({
-
-            color: 'rgba(255,0,0,0.5)'
-
-        })
+        color: 'rgba(0,0,0,0)',
+        width: 0
 
     })
+
+});
+
+// Подсветка при наведении
+const hoverProvinceStyle = new ol.style.Style({
+
+    fill: new ol.style.Fill({
+
+        color: 'rgba(255,255,180,0.25)'
+
+    }),
+
+    stroke: new ol.style.Stroke({
+
+        color: 'rgba(0,0,0,0)',
+        width: 0
+
+    })
+
+});
+
+// Подсветка при клике
+const selectedProvinceStyle = new ol.style.Style({
+
+    fill: new ol.style.Fill({
+
+        color: 'rgba(255,255,180,0.5)'
+
+    }),
+
+    stroke: new ol.style.Stroke({
+
+        color: '#ffff00',
+        width: 2
+
+    })
+
+});
+
+const provincesLayer = new ol.layer.Vector({
+
+    source: provincesSource,
+
+    style: function(feature) {
+
+        // Выбранная провинция
+        if (feature === selectedFeature) {
+            return selectedProvinceStyle;
+        }
+
+        // Наведение мыши
+        if (feature === hoveredFeature) {
+            return hoverProvinceStyle;
+        }
+
+        // Обычный стиль
+        return defaultProvinceStyle;
+
+    }
 
 });
 
@@ -117,6 +173,32 @@ const map = new ol.Map({
     extent: imageExtent
 
 })
+
+});
+
+// Подсветка при наведении мыши
+map.on('pointermove', function(event) {
+
+    // Feature под курсором
+    const feature = map.forEachFeatureAtPixel(
+
+        event.pixel,
+
+        function(feature) {
+            return feature;
+        }
+
+    );
+
+    // Если feature изменилась
+    if (feature !== hoveredFeature) {
+
+        hoveredFeature = feature;
+
+        // Перерисовываем слой
+        provincesLayer.changed();
+
+    }
 
 });
 
@@ -180,7 +262,10 @@ map.on('click', function(event) {
 
     );
 
+    // Выбрали провинцию
     if (feature) {
+
+        selectedFeature = feature;
 
         const provinceId = feature.get('id');
 
@@ -191,10 +276,16 @@ map.on('click', function(event) {
 
     }
 
+    // Клик по пустоте
     else {
+
+        selectedFeature = null;
 
         popup.setPosition(undefined);
 
     }
+
+    // Обновляем стили
+    provincesLayer.changed();
 
 });
