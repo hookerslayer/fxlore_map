@@ -262,7 +262,7 @@ searchInput.placeholder = 'ID провинции...';
 
 searchInput.style.position = 'absolute';
 searchInput.style.top = '10px';
-searchInput.style.left = '100px';
+searchInput.style.left = '80px';
 
 searchInput.style.zIndex = '1000';
 
@@ -277,7 +277,7 @@ searchButton.innerHTML = 'Поиск';
 
 searchButton.style.position = 'absolute';
 searchButton.style.top = '10px';
-searchButton.style.left = '250px';
+searchButton.style.left = '230px';
 
 searchButton.style.zIndex = '1000';
 
