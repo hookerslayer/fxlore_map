@@ -258,11 +258,11 @@ const searchInput = document.createElement('input');
 
 searchInput.type = 'text';
 
-searchInput.placeholder = 'Province ID';
+searchInput.placeholder = 'ID провинции...';
 
 searchInput.style.position = 'absolute';
 searchInput.style.top = '10px';
-searchInput.style.left = '140px';
+searchInput.style.left = '100px';
 
 searchInput.style.zIndex = '1000';
 
@@ -273,11 +273,11 @@ document.body.appendChild(searchInput);
 
 const searchButton = document.createElement('button');
 
-searchButton.innerHTML = 'Find';
+searchButton.innerHTML = 'Поиск';
 
 searchButton.style.position = 'absolute';
 searchButton.style.top = '10px';
-searchButton.style.left = '290px';
+searchButton.style.left = '250px';
 
 searchButton.style.zIndex = '1000';
 
@@ -397,7 +397,7 @@ idButton.innerHTML = 'ID';
 
 idButton.style.position = 'absolute';
 idButton.style.top = '10px';
-idButton.style.left = '35px';
+idButton.style.left = '40px';
 idButton.style.zIndex = '1000';
 
 idButton.style.padding = '6px 10px';
