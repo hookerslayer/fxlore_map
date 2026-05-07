@@ -137,7 +137,7 @@ const map = new ol.Map({
     layers: [
         imageLayer,
         provincesLayer
-    ]
+    ],
 
     view: new ol.View({
         projection: projection,
