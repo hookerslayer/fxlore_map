@@ -516,7 +516,7 @@ map.on('click', function(event) {
         selectedProvinceId = feature.get('id');
 
         popupElement.innerHTML =
-            `Province ID: ${selectedProvinceId}`;
+            `ID: ${selectedProvinceId}`;
 
         popup.setPosition(event.coordinate);
 
