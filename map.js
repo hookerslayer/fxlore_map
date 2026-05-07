@@ -40,3 +40,26 @@ const map = new ol.Map({
         extent: extent
     })
 });
+
+// Смена рендера при приближении
+function RenderingChanger() {
+
+    const currentZoom = map.getView().getZoom();
+
+    const canvases = map.getViewport().querySelectorAll('canvas');
+
+    canvases.forEach(canvas => {
+
+        if (currentZoom >= 2) {
+            canvas.style.imageRendering = 'pixelated';
+        }
+        else {
+            canvas.style.imageRendering = 'auto';
+        }
+
+    });
+}
+
+map.getView().on('change:resolution', RenderingChanger);
+
+RenderingChanger();
