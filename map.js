@@ -93,7 +93,7 @@ const hoverProvinceStyle = new ol.style.Style({
 
     fill: new ol.style.Fill({
 
-        color: 'rgba(255,255,180,0.25)'
+        color: 'rgba(255,255,180,0.75)'
 
     }),
 
@@ -111,7 +111,7 @@ const selectedProvinceStyle = new ol.style.Style({
 
     fill: new ol.style.Fill({
 
-        color: 'rgba(255,255,180,0.5)'
+        color: 'rgba(255,255,180,0.9)'
 
     }),
 
@@ -187,10 +187,10 @@ const map = new ol.Map({
 
         ],
 
-        zoom: 4,
+        zoom: 1,
 
         minZoom: 0,
-        maxZoom: 7,
+        maxZoom: 4,
 
         extent: imageExtent
 
