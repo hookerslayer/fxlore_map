@@ -95,20 +95,28 @@ const map = new ol.Map({
 
     view: new ol.View({
 
-        projection: 'EPSG:3857',
+    projection: 'EPSG:3857',
 
-        center: ol.extent.getCenter(imageExtent),
+    center: ol.extent.getCenter(imageExtent),
 
-        zoom: 2,
+    resolutions: [
 
-        minZoom: -2,
-        maxZoom: 6,
+        16,
+        8,
+        4,
+        2,
+        1,
+        0.5,
+        0.25,
+        0.125
 
-        constrainResolution: true,
+    ],
 
-        extent: imageExtent
+    zoom: 4,
 
-    })
+    extent: imageExtent
+
+})
 
 });
 
