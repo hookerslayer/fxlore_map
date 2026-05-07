@@ -262,7 +262,7 @@ idButton.innerHTML = 'ID';
 
 idButton.style.position = 'absolute';
 idButton.style.top = '10px';
-idButton.style.left = '50px';
+idButton.style.left = '25px';
 idButton.style.zIndex = '1000';
 
 idButton.style.padding = '6px 10px';
