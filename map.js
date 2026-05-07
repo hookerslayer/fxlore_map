@@ -35,7 +35,7 @@ const map = new ol.Map({
         zoom: 2,
 
         minZoom: -2,
-        maxZoom: 8,
+        maxZoom: 2,
 
         extent: extent
     })
@@ -50,7 +50,7 @@ function RenderingChanger() {
 
     canvases.forEach(canvas => {
 
-        if (currentZoom >= 2) {
+        if (currentZoom >= 0) {
             canvas.style.imageRendering = 'pixelated';
         }
         else {
