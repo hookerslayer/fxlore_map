@@ -27,7 +27,8 @@ const imageExtent = [
 // ===============================
 
 let hoveredFeature = null;
-let selectedFeature = null;
+let selectedProvinceId = null;
+let hoveredProvinceId = null;
 
 // ===============================
 // PNG слой
@@ -133,24 +134,32 @@ const provincesLayer = new ol.layer.Vector({
     source: provincesSource,
 
     style: function(feature) {
+    
+        const featureId = feature.get('id');
 
         // Выбранная провинция
-        if (feature === selectedFeature) {
-
+        if (
+            selectedProvinceId !== null &&
+            featureId === selectedProvinceId
+        ) {
+    
             return selectedProvinceStyle;
-
+    
         }
-
+    
         // Наведение мыши
-        if (feature === hoveredFeature) {
-
+        if (
+            hoveredProvinceId !== null &&
+            featureId === hoveredProvinceId
+        ) {
+    
             return hoverProvinceStyle;
-
+    
         }
-
+    
         // Обычный стиль
         return defaultProvinceStyle;
-
+    
     }
 
 });
@@ -214,14 +223,21 @@ map.on('pointermove', function(event) {
 
     );
 
-    // Обновляем только если изменилось
-    if (feature !== hoveredFeature) {
+    // Если курсор над провинцией
+    if (feature) {
 
-        hoveredFeature = feature;
-
-        provincesLayer.changed();
+        hoveredProvinceId = feature.get('id');
 
     }
+
+    // Если курсор вне провинций
+    else {
+
+        hoveredProvinceId = null;
+
+    }
+
+    provincesLayer.changed();
 
 });
 
@@ -288,12 +304,10 @@ map.on('click', function(event) {
     // Клик по провинции
     if (feature) {
 
-        selectedFeature = feature;
-
-        const provinceId = feature.get('id');
+        selectedProvinceId = feature.get('id');
 
         popupElement.innerHTML =
-            `Province ID: ${provinceId}`;
+            `Province ID: ${selectedProvinceId}`;
 
         popup.setPosition(event.coordinate);
 
@@ -302,7 +316,7 @@ map.on('click', function(event) {
     // Клик по пустоте
     else {
 
-        selectedFeature = null;
+        selectedProvinceId = null;
 
         popup.setPosition(undefined);
 
