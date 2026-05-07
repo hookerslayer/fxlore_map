@@ -1,34 +1,56 @@
-// Размер изображения карты
+// Размер изображения PNG
 const width = 4960;
 const height = 7015;
 
-// Границы изображения
-const extent = [0, 0, width, height];
+// Параметры из PGW файла
+const pixelSizeX = 2.370967741935;
+const pixelSizeY = -2.370919458304;
 
-// Создаем проекцию
+const topLeftX = -760.292207764065;
+const topLeftY = 1579.390922422695;
+
+// Вычисляем реальные GIS-границы изображения
+const imageExtent = [
+    topLeftX,
+    topLeftY + height * pixelSizeY,
+    topLeftX + width * pixelSizeX,
+    topLeftY
+];
+
+// Создаем кастомную проекцию
 const projection = new ol.proj.Projection({
     code: 'fantasy-map',
     units: 'pixels',
-    extent: extent
+    extent: imageExtent
 });
 
-// Создаем слой изображения
+// Слой PNG карты
 const imageLayer = new ol.layer.Image({
+
     source: new ol.source.ImageStatic({
+
         url: './karta_morprov.png',
+
         projection: projection,
-        imageExtent: extent,
+
+        imageExtent: imageExtent,
 
         interpolate: false
+
     })
+
 });
 
 // Слой провинций
-const provincesSource = new ol.source.Vector();
-
 const provincesLayer = new ol.layer.Vector({
 
-    source: provincesSource,
+    source: new ol.source.Vector({
+
+        url: './provinces.geojson',
+
+        format: new ol.format.GeoJSON()
+
+    }),
 
     style: new ol.style.Style({
 
@@ -45,93 +67,9 @@ const provincesLayer = new ol.layer.Vector({
 
 });
 
-// Загрузка GeoJSON
-fetch('./provinces.geojson')
-
-    .then(response => response.json())
-
-    .then(data => {
-
-        // Параметры трансформации
-        const offsetX = 1027.5;
-        const offsetY = 1027.5;
-
-        const angle = Math.PI / 2;
-
-        // Преобразуем все объекты
-        const transformedFeatures = data.features.map(feature => {
-
-            // Клонируем объект
-            const newFeature = structuredClone(feature);
-
-            // Обрабатываем координаты
-            newFeature.geometry.coordinates =
-                newFeature.geometry.coordinates.map(polygon =>
-
-                    polygon.map(ring =>
-
-                        ring.map(point => {
-
-                            const x = point[0];
-                            const y = point[1];
-
-                            // Масштабирование + смещение
-                            const px = (x - (-760.292207764065)) / 2.370967741935;
-
-                            const py = (y - 1579.390922422695) / (-2.370919458304);
-
-                            // Смещение относительно центра
-                            const dx = px - width / 2;
-                            const dy = py - height / 2;
-
-                            // Поворот
-                            const cos = Math.cos(angle);
-                            const sin = Math.sin(angle);
-
-                            const rotatedX =
-                                cos * dx - sin * dy + width / 2;
-
-                            const rotatedY =
-                                sin * dx + cos * dy + height / 2;
-
-                            // Финальное смещение
-                            const finalX = rotatedX + offsetX;
-                            const finalY = rotatedY + offsetY;
-
-                            // OpenLayers использует [x, y]
-                            return [finalX, finalY];
-
-                        })
-
-                    )
-
-                );
-
-            return newFeature;
-
-        });
-
-        // Создаем GeoJSON объект
-        const transformedGeoJSON = {
-            type: 'FeatureCollection',
-            features: transformedFeatures
-        };
-
-        // Читаем features
-        const features = new ol.format.GeoJSON().readFeatures(
-            transformedGeoJSON,
-            {
-                featureProjection: projection
-            }
-        );
-
-        // Добавляем в source
-        provincesSource.addFeatures(features);
-
-    });
-
 // Создаем карту
 const map = new ol.Map({
+
     target: 'map',
 
     layers: [
@@ -140,50 +78,65 @@ const map = new ol.Map({
     ],
 
     view: new ol.View({
+
         projection: projection,
 
-        center: ol.extent.getCenter(extent),
+        center: ol.extent.getCenter(imageExtent),
 
         zoom: 2,
 
         minZoom: -2,
         maxZoom: 6,
 
-        extent: extent
+        constrainResolution: true,
+
+        extent: imageExtent
+
     })
+
 });
 
-// Блок вывода координат
+// ===============================
+// КООРДИНАТЫ КУРСОРА
+// ===============================
+
 const coordsDiv = document.getElementById('coords');
 
-// Отслеживаем движение мыши по карте
 map.on('pointermove', function(event) {
 
-    // Координаты курсора в системе карты
     const coords = event.coordinate;
 
-    // X координата
+    // GIS координаты
     const x = Math.round(coords[0]);
-
-    // Y координата
     const y = Math.round(coords[1]);
 
-    // Обновляем текст
     coordsDiv.innerHTML = `X: ${x} | Y: ${y}`;
+
 });
 
-// Popup
+// ===============================
+// POPUP ПРОВИНЦИЙ
+// ===============================
+
 const popupElement = document.createElement('div');
 
+popupElement.style.position = 'absolute';
 popupElement.style.background = 'white';
 popupElement.style.padding = '8px';
 popupElement.style.border = '1px solid black';
 popupElement.style.borderRadius = '6px';
+popupElement.style.minWidth = '100px';
 
 const popup = new ol.Overlay({
+
     element: popupElement,
+
     positioning: 'bottom-center',
-    offset: [0, -10]
+
+    offset: [0, -10],
+
+    stopEvent: false
+
 });
 
 map.addOverlay(popup);
@@ -205,7 +158,9 @@ map.on('click', function(event) {
 
         popup.setPosition(event.coordinate);
 
-    } else {
+    }
+
+    else {
 
         popup.setPosition(undefined);
 
