@@ -147,7 +147,7 @@ const imageLayer = new ol.layer.Image({
 
         projection: 'EPSG:3857',
 
-        interpolate: false
+        interpolate: true
 
     })
 
@@ -442,7 +442,7 @@ const map = new ol.Map({
         zoom: 1,
 
         minZoom: 0,
-        maxZoom: 2,
+        maxZoom: 3,
 
         extent: imageExtent
 
