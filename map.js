@@ -833,7 +833,11 @@ map.on(
 
             function(feature) {
 
-                return feature;
+                    if (feature.get('hidden')) {
+                        return null;
+                    }
+                    
+                    return feature;
 
             }
 
@@ -1137,185 +1141,142 @@ map.addLayer(markersLayer);
 // Стили маркеров
 // =====================================
 
-function createMarkerStyle(type, label) {
+// =====================================
+// Стиль маркеров
+// =====================================
 
-    let shape;
+function createMarkerStyle(
+    type,
+    name
+) {
+
+    const zoom =
+        map.getView().getZoom();
 
     // =========================
+    // Показывать ли подпись
+    // =========================
+
+    const showLabel =
+        zoom >= 2 &&
+        type !== 'Порт';
+
+    // =========================
+    // Общий text style
+    // =========================
+
+    const textStyle =
+        showLabel
+
+        ? new ol.style.Text({
+
+            text: name,
+
+            offsetX: 14,
+
+            textAlign: 'left',
+
+            font: '14px Arial',
+
+            fill: new ol.style.Fill({
+                color: '#ffffff'
+            }),
+
+            stroke: new ol.style.Stroke({
+                color: '#000000',
+                width: 3
+            })
+
+        })
+
+        : null;
+
+    // =================================
     // Столица
-    // =========================
+    // =================================
 
     if (type === 'Столица') {
 
-        shape =
-        new ol.style.RegularShape({
-
-            points: 5,
-
-            radius: 12,
-
-            radius2: 5,
-
-            angle: 0,
-
-            fill: new ol.style.Fill({
-
-                color: '#ffd700'
-
-            }),
-
-            stroke: new ol.style.Stroke({
-
-                color: '#000',
-                width: 1
-
-            })
-
-        });
-
-    }
-
-    // =========================
-    // Город
-    // =========================
-
-    if (type === 'Город') {
-
-        shape =
-        new ol.style.Circle({
-
-            radius: 6,
-
-            fill: new ol.style.Fill({
-
-                color: '#ffd700'
-
-            }),
-
-            stroke: new ol.style.Stroke({
-
-                color: '#000',
-                width: 1
-
-            })
-
-        });
-
-    }
-
-    // =========================
-    // Порт
-    // =========================
-
-    if (type === 'Порт') {
-
-        shape =
-        new ol.style.RegularShape({
-
-            points: 3,
-
-            radius: 6,
-
-            rotation: Math.PI,
-
-            fill: new ol.style.Fill({
-
-                color: '#3399ff'
-
-            }),
-
-            stroke: new ol.style.Stroke({
-
-                color: '#000',
-                width: 1
-
-            })
-
-        });
-
-    }
-
-    // =========================
-    // Форт
-    // =========================
-
-    if (type === 'Форт') {
-
-        shape =
-        new ol.style.RegularShape({
-
-            points: 4,
-
-            radius: 7,
-
-            angle: Math.PI / 4,
-
-            fill: new ol.style.Fill({
-
-                color: '#8b4513'
-
-            }),
-
-            stroke: new ol.style.Stroke({
-
-                color: '#000',
-                width: 1
-
-            })
-
-        });
-
-    }
-
-    // =========================
-    // Крепости
-    // =========================
-
-    if (type.includes('Крепость')) {
-
-        const level =
-        type.replace('Крепость ', '');
-
         return new ol.style.Style({
 
-            image:
-            new ol.style.RegularShape({
+            image: new ol.style.RegularShape({
 
-                points: 4,
+                points: 5,
 
-                radius: 9,
+                radius: 12,
 
-                angle: Math.PI / 4,
+                radius2: 5,
 
                 fill: new ol.style.Fill({
-
-                    color: '#777'
-
+                    color: '#ffd700'
                 }),
 
                 stroke: new ol.style.Stroke({
-
-                    color: '#000',
+                    color: '#000000',
                     width: 1
-
                 })
 
             }),
 
-            text:
-            new ol.style.Text({
+            text: textStyle
 
-                text: level,
+        });
 
-                font: 'bold 10px Arial',
+    }
+
+    // =================================
+    // Город
+    // =================================
+
+    if (type === 'Город') {
+
+        return new ol.style.Style({
+
+            image: new ol.style.Circle({
+
+                radius: 6,
 
                 fill: new ol.style.Fill({
-
-                    color: '#ffffff'
-
+                    color: '#ffd700'
                 }),
 
-                offsetY: 1
+                stroke: new ol.style.Stroke({
+                    color: '#000000',
+                    width: 1
+                })
+
+            }),
+
+            text: textStyle
+
+        });
+
+    }
+
+    // =================================
+    // Порт
+    // =================================
+
+    if (type === 'Порт') {
+
+        return new ol.style.Style({
+
+            image: new ol.style.RegularShape({
+
+                points: 3,
+
+                radius: 7,
+
+                rotation: Math.PI,
+
+                fill: new ol.style.Fill({
+                    color: '#3c8dff'
+                }),
+
+                stroke: new ol.style.Stroke({
+                    color: '#000000',
+                    width: 1
+                })
 
             })
 
@@ -1323,93 +1284,118 @@ function createMarkerStyle(type, label) {
 
     }
 
-    // =========================
+    // =================================
     // Точка интереса
-    // =========================
+    // =================================
 
     if (type === 'Точка интереса') {
 
         return new ol.style.Style({
 
-            image:
-            new ol.style.RegularShape({
+            image: new ol.style.RegularShape({
 
                 points: 4,
 
-                radius: 8,
+                radius: 7,
 
-                angle: 0,
+                angle: Math.PI / 4,
 
                 fill: new ol.style.Fill({
-
-                    color: '#cc0000'
-
+                    color: '#ff0000'
                 }),
 
                 stroke: new ol.style.Stroke({
-
-                    color: '#000',
+                    color: '#000000',
                     width: 1
-
                 })
 
             }),
 
-            text:
-            new ol.style.Text({
-
-                text: '?',
-
-                font: 'bold 12px Arial',
-
-                fill: new ol.style.Fill({
-
-                    color: '#ffffff'
-
-                })
-
-            })
+            text: textStyle
 
         });
 
     }
 
-    return new ol.style.Style({
+    // =================================
+    // Крепости / Форты
+    // =================================
 
-        image: shape,
+    let fortressLabel = '';
 
-        text:
-        type !== 'Порт' &&
-        map.getView().getZoom() >= 2
+    if (type.includes('I')) {
+        fortressLabel = 'I';
+    }
 
-        ? new ol.style.Text({
+    if (type.includes('II')) {
+        fortressLabel = 'II';
+    }
 
-            text: label,
+    if (type.includes('III')) {
+        fortressLabel = 'III';
+    }
 
-            font: '13px Arial',
+    if (type.includes('IV')) {
+        fortressLabel = 'IV';
+    }
 
-            offsetX: 15,
+    if (type.includes('V')) {
+        fortressLabel = 'V';
+    }
 
-            textAlign: 'left',
+    return [
 
-            fill: new ol.style.Fill({
+        new ol.style.Style({
 
-                color: '#000'
+            image: new ol.style.RegularShape({
 
-            }),
+                points: 4,
 
-            stroke: new ol.style.Stroke({
+                radius: 8,
 
-                color: '#fff',
-                width: 3
+                angle: Math.PI / 4,
+
+                fill: new ol.style.Fill({
+                    color: '#888888'
+                }),
+
+                stroke: new ol.style.Stroke({
+                    color: '#000000',
+                    width: 1
+                })
 
             })
 
-        })
+        }),
 
-        : null
+        new ol.style.Style({
 
-    });
+            text: new ol.style.Text({
+
+                text: fortressLabel,
+
+                font: 'bold 10px Arial',
+
+                fill: new ol.style.Fill({
+                    color: '#ffffff'
+                }),
+
+                stroke: new ol.style.Stroke({
+                    color: '#000000',
+                    width: 2
+                })
+
+            })
+
+        }),
+
+        ...(textStyle
+            ? [new ol.style.Style({
+                text: textStyle
+            })]
+            : [])
+
+    ];
 
 }
 
@@ -1625,21 +1611,22 @@ function addMarkerToggle(
             markerGroups[key]
             .forEach(feature => {
 
+                feature.set(
+                    'hidden',
+                    !checkbox.checked
+                );
+                
                 feature.setStyle(
-
+                
                     checkbox.checked
-
+                
                     ? createMarkerStyle(
-                        feature.get(
-                            'markerType'
-                        ),
-                        feature.get(
-                            'markerName'
-                        )
+                        feature.get('markerType'),
+                        feature.get('markerName')
                     )
-
-                    : null
-
+                
+                    : []
+                
                 );
 
             });
@@ -1754,6 +1741,44 @@ coordsCheckbox.addEventListener(
                 'none';
 
         }
+
+    }
+);
+
+// =====================================
+// Обновление подписей при zoom
+// =====================================
+
+map.getView().on(
+    'change:resolution',
+    function() {
+
+        markersSource.getFeatures()
+        .forEach(feature => {
+
+            if (
+                feature.get('hidden')
+            ) {
+                return;
+            }
+
+            feature.setStyle(
+
+                createMarkerStyle(
+
+                    feature.get(
+                        'markerType'
+                    ),
+
+                    feature.get(
+                        'markerName'
+                    )
+
+                )
+
+            );
+
+        });
 
     }
 );
