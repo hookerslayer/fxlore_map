@@ -1138,10 +1138,6 @@ new ol.layer.Vector({
 map.addLayer(markersLayer);
 
 // =====================================
-// Стили маркеров
-// =====================================
-
-// =====================================
 // Стиль маркеров
 // =====================================
 
@@ -1267,7 +1263,7 @@ function createMarkerStyle(
 
                 radius: 7,
 
-                rotation: Math.PI,
+                rotation: Math.PI / 2,
 
                 fill: new ol.style.Fill({
                     color: '#3c8dff'
@@ -1322,25 +1318,25 @@ function createMarkerStyle(
     // =================================
 
     let fortressLabel = '';
-
-    if (type.includes('I')) {
-        fortressLabel = 'I';
-    }
-
-    if (type.includes('II')) {
-        fortressLabel = 'II';
-    }
-
+    
     if (type.includes('III')) {
         fortressLabel = 'III';
     }
-
-    if (type.includes('IV')) {
+    
+    else if (type.includes('IV')) {
         fortressLabel = 'IV';
     }
-
-    if (type.includes('V')) {
+    
+    else if (type.includes('II')) {
+        fortressLabel = 'II';
+    }
+    
+    else if (type.includes('V')) {
         fortressLabel = 'V';
+    }
+    
+    else if (type.includes('I')) {
+        fortressLabel = 'I';
     }
 
     return [
@@ -1356,7 +1352,13 @@ function createMarkerStyle(
                 angle: Math.PI / 4,
 
                 fill: new ol.style.Fill({
-                    color: '#888888'
+                    color:
+
+                    type === 'Форт'
+                    
+                    ? '#8b5a2b'
+                    
+                    : '#888888'
                 }),
 
                 stroke: new ol.style.Stroke({
@@ -1490,6 +1492,32 @@ fetch(markersSheetURL)
     });
 
 });
+
+// ПРОВЕРИТЬ
+setTimeout(() => {
+
+    markersSource.getFeatures()
+    .forEach(feature => {
+
+        feature.setStyle(
+
+            createMarkerStyle(
+
+                feature.get(
+                    'markerType'
+                ),
+
+                feature.get(
+                    'markerName'
+                )
+
+            )
+
+        );
+
+    });
+
+}, 100);
 
 // =====================================
 // Popup маркеров
@@ -1741,44 +1769,6 @@ coordsCheckbox.addEventListener(
                 'none';
 
         }
-
-    }
-);
-
-// =====================================
-// Обновление подписей при zoom
-// =====================================
-
-map.getView().on(
-    'change:resolution',
-    function() {
-
-        markersSource.getFeatures()
-        .forEach(feature => {
-
-            if (
-                feature.get('hidden')
-            ) {
-                return;
-            }
-
-            feature.setStyle(
-
-                createMarkerStyle(
-
-                    feature.get(
-                        'markerType'
-                    ),
-
-                    feature.get(
-                        'markerName'
-                    )
-
-                )
-
-            );
-
-        });
 
     }
 );
