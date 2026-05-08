@@ -1,15 +1,24 @@
+// =====================================
 // Размер PNG
+// =====================================
+
 const width = 4960;
 const height = 7015;
 
-// Параметры из PGW
+// =====================================
+// Параметры PGW
+// =====================================
+
 const pixelSizeX = 2.370967741935;
 const pixelSizeY = -2.370919458304;
 
 const topLeftX = -760.292207764065;
 const topLeftY = 1579.390922422695;
 
-// Вычисляем extent PNG
+// =====================================
+// Extent изображения
+// =====================================
+
 const imageExtent = [
 
     topLeftX,
@@ -22,9 +31,9 @@ const imageExtent = [
 
 ];
 
-// ===============================
+// =====================================
 // Google Sheets CSV
-// ===============================
+// =====================================
 
 const sheet1URL =
 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHKLat89I0Y8aYJgrEbK9CRsDJdaIlvgLEgtzT8WP8m6nGgd9GShkzLQFLShQwjsg9KXOeCtN0p47_/pub?gid=0&single=true&output=csv';
@@ -32,9 +41,9 @@ const sheet1URL =
 const sheet2URL =
 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHKLat89I0Y8aYJgrEbK9CRsDJdaIlvgLEgtzT8WP8m6nGgd9GShkzLQFLShQwjsg9KXOeCtN0p47_/pub?gid=1734047695&single=true&output=csv';
 
-// ===============================
-// Данные провинций
-// ===============================
+// =====================================
+// Данные
+// =====================================
 
 let provinceData = {};
 
@@ -44,151 +53,30 @@ let raceColors = {};
 let resourceColors = {};
 let tradeZoneColors = {};
 
-// ===============================
-// Активный режим карты
-// ===============================
-
-let currentMapMode = 'political';
-
-// ===============================
-// Состояния провинций
-// ===============================
-
-let hoveredFeature = null;
-let selectedProvinceId = null;
 let hoveredProvinceId = null;
-
-// ===============================
-// PNG слой
-// ===============================
-
-const imageLayer = new ol.layer.Image({
-
-    source: new ol.source.ImageStatic({
-
-        url: './karta_morprov.png',
-
-        imageExtent: imageExtent,
-
-        projection: 'EPSG:3857',
-
-        interpolate: false
-
-    })
-
-});
-
-// ===============================
-// GeoJSON слой
-// ===============================
-
-const provincesSource = new ol.source.Vector({
-
-    url: './provinces.geojson',
-
-    format: new ol.format.GeoJSON({
-
-        dataProjection: 'EPSG:3857',
-        featureProjection: 'EPSG:3857'
-
-    })
-
-});
-
-// ===============================
-// Стили
-// ===============================
-
-// Обычный стиль
-const defaultProvinceStyle = new ol.style.Style({
-
-    fill: new ol.style.Fill({
-
-        color: 'rgba(0,0,0,0)'
-
-    }),
-
-    stroke: new ol.style.Stroke({
-
-        color: 'rgba(0,0,0,0)',
-        width: 0
-
-    })
-
-});
-
-// Наведение
-const hoverProvinceStyle = new ol.style.Style({
-
-    fill: new ol.style.Fill({
-
-        color: 'rgba(255,255,180,0.75)'
-
-    }),
-
-    stroke: new ol.style.Stroke({
-
-        color: 'rgba(0,0,0,0)',
-        width: 0
-
-    })
-
-});
-
-// Выделение
-const selectedProvinceStyle = new ol.style.Style({
-
-    fill: new ol.style.Fill({
-
-        color: 'rgba(255,255,180,0.9)'
-
-    }),
-
-    stroke: new ol.style.Stroke({
-
-        color: '#ffff00',
-        width: 2
-
-    })
-
-});
-
-// Поиск провинции
-const searchProvinceStyle = new ol.style.Style({
-
-    fill: new ol.style.Fill({
-
-        color: 'rgba(0,0,0,0)'
-
-    }),
-
-    stroke: new ol.style.Stroke({
-
-        color: '#ff0000',
-        width: 3
-
-    })
-
-});
-
+let selectedProvinceId = null;
 let searchedProvinceId = null;
 
-// ===============================
+let hoveredLegendCountry = null;
+
+let showProvinceIds = false;
+
+// =====================================
 // Загрузка CSV
-// ===============================
+// =====================================
 
 Promise.all([
 
     fetch(sheet1URL).then(r => r.text()),
     fetch(sheet2URL).then(r => r.text())
 
-]).then(function([csv1, csv2]) {
+]).then(([csv1, csv2]) => {
 
-    // ===========================
+    // =========================
     // Данные провинций
-    // ===========================
+    // =========================
 
-    csv1.trim().split('\n').slice(1).forEach(function(rowStr) {
+    csv1.trim().split('\n').slice(1).forEach(rowStr => {
 
         const cols = rowStr.split(',');
 
@@ -211,152 +99,143 @@ Promise.all([
 
     });
 
-    // ===========================
+    // =========================
     // Цвета
-    // ===========================
+    // =========================
 
-    csv2.trim().split('\n').slice(1).forEach(function(rowStr) {
+    csv2.trim().split('\n').slice(1).forEach(rowStr => {
 
         const cols = rowStr.split(',');
 
         if (cols[0] && cols[1]) {
-            countryColors[cols[0].trim()] =
-                '#' + cols[1].trim();
+            countryColors[cols[0].trim()] = '#' + cols[1].trim();
         }
 
         if (cols[6] && cols[7]) {
-            religionColors[cols[6].trim()] =
-                '#' + cols[7].trim();
+            religionColors[cols[6].trim()] = '#' + cols[7].trim();
         }
 
         if (cols[3] && cols[4]) {
-            raceColors[cols[3].trim()] =
-                '#' + cols[4].trim();
+            raceColors[cols[3].trim()] = '#' + cols[4].trim();
         }
 
         if (cols[9] && cols[10]) {
-            resourceColors[cols[9].trim()] =
-                '#' + cols[10].trim();
+            resourceColors[cols[9].trim()] = '#' + cols[10].trim();
         }
 
         if (cols[12] && cols[13]) {
-            tradeZoneColors[cols[12].trim()] =
-                '#' + cols[13].trim();
+            tradeZoneColors[cols[12].trim()] = '#' + cols[13].trim();
         }
 
     });
-
-    provincesLayer.changed();
 
     updateLegend();
 
 });
 
-// ===============================
-// Слой провинций
-// ===============================
+// =====================================
+// PNG слой
+// =====================================
 
-const provincesLayer = new ol.layer.Vector({
+const imageLayer = new ol.layer.Image({
 
-    source: provincesSource,
+    source: new ol.source.ImageStatic({
 
-    style: function(feature) {
+        url: './karta_morprov.png',
 
-    const featureId = feature.get('id');
+        imageExtent: imageExtent,
 
-    const province = provinceData[featureId];
+        projection: 'EPSG:3857',
 
-    let fillColor = 'rgba(0,0,0,0)';
+        interpolate: false
+
+    })
+
+});
+
+// =====================================
+// GeoJSON source
+// =====================================
+
+const provincesSource = new ol.source.Vector({
+
+    url: './provinces.geojson',
+
+    format: new ol.format.GeoJSON({
+
+        dataProjection: 'EPSG:3857',
+        featureProjection: 'EPSG:3857'
+
+    })
+
+});
+
+// =====================================
+// Стили
+// =====================================
+
+function getFillColor(feature) {
+
+    const id = feature.get('id');
+
+    if (!provinceData[id]) {
+        return null;
+    }
+
+    if (currentMapMode === 'political') {
+
+        return countryColors[
+            provinceData[id].state
+        ];
+
+    }
+
+    if (currentMapMode === 'religion') {
+
+        return religionColors[
+            provinceData[id].religion
+        ];
+
+    }
+
+    if (currentMapMode === 'race') {
+
+        return raceColors[
+            provinceData[id].race
+        ];
+
+    }
+
+    if (currentMapMode === 'resource') {
+
+        return resourceColors[
+            provinceData[id].resource
+        ];
+
+    }
+
+    if (currentMapMode === 'trade') {
+
+        return tradeZoneColors[
+            provinceData[id].tradeZone
+        ];
+
+    }
+
+    return null;
+
+}
+
+function getProvinceStyle(feature) {
+
+    const id = feature.get('id');
+
+    const fillColor = getFillColor(feature);
+
     let fillOpacity = 0;
 
-    // =========================
-    // Политическая карта
-    // =========================
-
-    if (
-        currentMapMode === 'political' &&
-        province &&
-        province.state &&
-        countryColors[province.state]
-    ) {
-
-        fillColor =
-            countryColors[province.state];
-
+    if (fillColor) {
         fillOpacity = 0.5;
-
-    }
-
-    // =========================
-    // Религии
-    // =========================
-
-    if (
-        currentMapMode === 'religion' &&
-        province &&
-        province.religion &&
-        religionColors[province.religion]
-    ) {
-
-        fillColor =
-            religionColors[province.religion];
-
-        fillOpacity = 0.5;
-
-    }
-
-    // =========================
-    // Расы
-    // =========================
-
-    if (
-        currentMapMode === 'race' &&
-        province &&
-        province.race &&
-        raceColors[province.race]
-    ) {
-
-        fillColor =
-            raceColors[province.race];
-
-        fillOpacity = 0.5;
-
-    }
-
-    // =========================
-    // Ресурсы
-    // =========================
-
-    if (
-        currentMapMode === 'resource' &&
-        province &&
-        province.resource &&
-        resourceColors[province.resource]
-    ) {
-
-        fillColor =
-            resourceColors[province.resource];
-
-        fillOpacity = 0.5;
-
-    }
-
-    // =========================
-    // Торговые зоны
-    // =========================
-
-    if (
-        currentMapMode === 'trade' &&
-        province &&
-        province.tradeZone &&
-        tradeZoneColors[province.tradeZone]
-    ) {
-
-        fillColor =
-            tradeZoneColors[province.tradeZone];
-
-        fillOpacity = 0.5;
-
     }
 
     // =========================
@@ -365,18 +244,22 @@ const provincesLayer = new ol.layer.Vector({
 
     if (
         searchedProvinceId !== null &&
-        featureId === searchedProvinceId
+        id === searchedProvinceId
     ) {
 
         return new ol.style.Style({
 
             fill: new ol.style.Fill({
-                color: fillColor.replace(')', ',' + fillOpacity + ')')
+
+                color: 'rgba(0,0,0,0)'
+
             }),
 
             stroke: new ol.style.Stroke({
+
                 color: '#ff0000',
                 width: 3
+
             })
 
         });
@@ -389,18 +272,22 @@ const provincesLayer = new ol.layer.Vector({
 
     if (
         selectedProvinceId !== null &&
-        featureId === selectedProvinceId
+        id === selectedProvinceId
     ) {
 
         return new ol.style.Style({
 
             fill: new ol.style.Fill({
-                color: 'rgba(255,255,180,0.9)'
+
+                color: 'rgba(255,255,180,0.8)'
+
             }),
 
             stroke: new ol.style.Stroke({
+
                 color: '#ffff00',
                 width: 2
+
             })
 
         });
@@ -408,23 +295,58 @@ const provincesLayer = new ol.layer.Vector({
     }
 
     // =========================
-    // Наведение
+    // Наведение мыши
     // =========================
 
     if (
         hoveredProvinceId !== null &&
-        featureId === hoveredProvinceId
+        id === hoveredProvinceId
     ) {
 
         return new ol.style.Style({
 
             fill: new ol.style.Fill({
-                color: 'rgba(255,255,180,0.75)'
+
+                color: 'rgba(255,255,180,0.6)'
+
             }),
 
             stroke: new ol.style.Stroke({
+
                 color: 'rgba(0,0,0,0)',
                 width: 0
+
+            })
+
+        });
+
+    }
+
+    // =========================
+    // Наведение на страну в легенде
+    // =========================
+
+    if (
+        hoveredLegendCountry &&
+        provinceData[id] &&
+        provinceData[id].state === hoveredLegendCountry
+    ) {
+
+        return new ol.style.Style({
+
+            fill: new ol.style.Fill({
+
+                color: fillColor
+                    ? fillColor + '88'
+                    : 'rgba(0,0,0,0)'
+
+            }),
+
+            stroke: new ol.style.Stroke({
+
+                color: fillColor || '#000000',
+                width: 3
+
             })
 
         });
@@ -439,9 +361,8 @@ const provincesLayer = new ol.layer.Vector({
 
         fill: new ol.style.Fill({
 
-            color:
-                fillOpacity > 0
-                ? fillColor + '80'
+            color: fillColor
+                ? fillColor + '88'
                 : 'rgba(0,0,0,0)'
 
         }),
@@ -457,13 +378,105 @@ const provincesLayer = new ol.layer.Vector({
 
 }
 
+// =====================================
+// Основной слой провинций
+// =====================================
+
+const provincesLayer = new ol.layer.Vector({
+
+    source: provincesSource,
+
+    style: getProvinceStyle
+
 });
 
-// ===============================
-// Слой подписей ID
-// ===============================
+// =====================================
+// Подписи государств
+// =====================================
 
-let showProvinceIds = false;
+const countryLabelsLayer = new ol.layer.Vector({
+
+    source: provincesSource,
+
+    style: function(feature) {
+
+        const zoom =
+            map.getView().getZoom();
+
+        // Скрываем при сильном приближении
+        if (zoom >= 3) {
+            return null;
+        }
+
+        const id = feature.get('id');
+
+        if (!provinceData[id]) {
+            return null;
+        }
+
+        const state =
+            provinceData[id].state;
+
+        if (!state) {
+            return null;
+        }
+
+        // Показываем только 1 раз
+        const features =
+            provincesSource.getFeatures();
+
+        const firstFeature =
+            features.find(f => {
+
+                const fId = f.get('id');
+
+                return (
+                    provinceData[fId] &&
+                    provinceData[fId].state === state
+                );
+
+            });
+
+        if (feature !== firstFeature) {
+            return null;
+        }
+
+        return new ol.style.Style({
+
+            text: new ol.style.Text({
+
+                text: state,
+
+                font: 'bold 24px serif',
+
+                rotation: -0.3,
+
+                fill: new ol.style.Fill({
+
+                    color: '#000000'
+
+                }),
+
+                stroke: new ol.style.Stroke({
+
+                    color: '#ffffff',
+                    width: 4
+
+                }),
+
+                overflow: true
+
+            })
+
+        });
+
+    }
+
+});
+
+// =====================================
+// ID layer
+// =====================================
 
 const provinceLabelsLayer = new ol.layer.Vector({
 
@@ -471,7 +484,6 @@ const provinceLabelsLayer = new ol.layer.Vector({
 
     style: function(feature) {
 
-        // Если режим выключен — ничего не рисуем
         if (!showProvinceIds) {
             return null;
         }
@@ -491,9 +503,7 @@ const provinceLabelsLayer = new ol.layer.Vector({
                 stroke: new ol.style.Stroke({
                     color: '#ffffff',
                     width: 3
-                }),
-
-                overflow: true
+                })
 
             })
 
@@ -503,118 +513,29 @@ const provinceLabelsLayer = new ol.layer.Vector({
 
 });
 
-// ===============================
-// Поиск провинции
-// ===============================
-
-const searchInput = document.createElement('input');
-
-searchInput.type = 'text';
-
-searchInput.placeholder = 'ID провинции...';
-
-searchInput.style.position = 'absolute';
-searchInput.style.top = '10px';
-searchInput.style.left = '80px';
-
-searchInput.style.zIndex = '1000';
-
-searchInput.style.padding = '6px';
-searchInput.style.border = '1px solid black';
-
-document.body.appendChild(searchInput);
-
-const searchButton = document.createElement('button');
-
-searchButton.innerHTML = 'Поиск';
-
-searchButton.style.position = 'absolute';
-searchButton.style.top = '10px';
-searchButton.style.left = '230px';
-
-searchButton.style.zIndex = '1000';
-
-searchButton.style.padding = '6px 10px';
-searchButton.style.background = 'white';
-searchButton.style.border = '1px solid black';
-searchButton.style.cursor = 'pointer';
-
-document.body.appendChild(searchButton);
-
-searchButton.addEventListener('click', function() {
-
-    const searchId = searchInput.value.trim();
-
-    // Сбрасываем прошлый поиск
-    searchedProvinceId = null;
-
-    if (!searchId) {
-
-        provincesLayer.changed();
-
-        return;
-
-    }
-
-    // Ищем province
-    const features = provincesSource.getFeatures();
-
-    const foundFeature = features.find(function(feature) {
-
-        return String(feature.get('id')) === searchId;
-
-    });
-
-    // Если нашли
-    if (foundFeature) {
-
-        searchedProvinceId = searchId;
-
-        // Геометрия
-        const geometry = foundFeature.getGeometry();
-
-        // Центр провинции
-        const center =
-            ol.extent.getCenter(
-                geometry.getExtent()
-            );
-
-        // Перемещаем карту
-        map.getView().animate({
-
-            center: center,
-
-            duration: 700,
-
-            zoom: 3
-
-        });
-
-    }
-
-    provincesLayer.changed();
-
-});
-
-// ===============================
+// =====================================
 // Карта
-// ===============================
+// =====================================
 
 const map = new ol.Map({
 
     target: 'map',
 
     layers: [
+
         imageLayer,
         provincesLayer,
+        countryLabelsLayer,
         provinceLabelsLayer
+
     ],
 
     view: new ol.View({
 
         projection: 'EPSG:3857',
 
-        center: ol.extent.getCenter(imageExtent),
+        center:
+            ol.extent.getCenter(imageExtent),
 
         resolutions: [
 
@@ -640,66 +561,41 @@ const map = new ol.Map({
 
 });
 
-// ===============================
-// Кнопка отображения ID
-// ===============================
+// =====================================
+// Режим карты
+// =====================================
 
-const idButton = document.createElement('button');
+let currentMapMode = 'political';
 
-idButton.innerHTML = 'ID';
+// =====================================
+// Select карты
+// =====================================
 
-idButton.style.position = 'absolute';
-idButton.style.top = '10px';
-idButton.style.left = '40px';
-idButton.style.zIndex = '1000';
-
-idButton.style.padding = '6px 10px';
-idButton.style.background = 'white';
-idButton.style.border = '1px solid black';
-idButton.style.cursor = 'pointer';
-
-document.body.appendChild(idButton);
-
-// Переключение отображения ID
-idButton.addEventListener('click', function() {
-
-    showProvinceIds = !showProvinceIds;
-
-    provinceLabelsLayer.changed();
-
-});
-
-// ===============================
-// Переключение режимов карты
-// ===============================
-
-const mapModeSelect =
+const layerSelect =
 document.createElement('select');
 
-mapModeSelect.style.position = 'absolute';
-mapModeSelect.style.top = '10px';
-mapModeSelect.style.left = '330px';
+layerSelect.style.position = 'absolute';
+layerSelect.style.top = '10px';
+layerSelect.style.right = '10px';
 
-mapModeSelect.style.zIndex = '1000';
+layerSelect.style.zIndex = '1000';
 
-mapModeSelect.style.padding = '6px';
-
-mapModeSelect.innerHTML = `
+layerSelect.innerHTML = `
 
 <option value="political">
 Политическая
 </option>
 
 <option value="religion">
-Религии
+Религиозная
 </option>
 
 <option value="race">
-Расы
+Расовая
 </option>
 
 <option value="resource">
-Ресурсы
+Ресурсная
 </option>
 
 <option value="trade">
@@ -708,82 +604,419 @@ mapModeSelect.innerHTML = `
 
 `;
 
-document.body.appendChild(mapModeSelect);
+document.body.appendChild(layerSelect);
 
-mapModeSelect.addEventListener('change', function() {
+layerSelect.addEventListener(
+    'change',
+    function() {
 
-    currentMapMode =
-        mapModeSelect.value;
+        currentMapMode =
+            layerSelect.value;
 
-    provincesLayer.changed();
+        provincesLayer.changed();
 
-    updateLegend();
+        updateLegend();
 
-});
+    }
+);
 
-// ===============================
-// Подсветка при наведении
-// ===============================
+// =====================================
+// Легенда
+// =====================================
 
-map.on('pointermove', function(event) {
+const legendContainer =
+document.createElement('div');
 
-    const feature = map.forEachFeatureAtPixel(
+legendContainer.style.position =
+'absolute';
 
-        event.pixel,
+legendContainer.style.top = '50px';
+legendContainer.style.right = '10px';
 
-        function(feature) {
-            return feature;
+legendContainer.style.zIndex = '1000';
+
+legendContainer.style.background =
+'white';
+
+legendContainer.style.border =
+'1px solid #999';
+
+legendContainer.style.borderRadius =
+'6px';
+
+legendContainer.style.minWidth =
+'220px';
+
+legendContainer.style.maxHeight =
+'400px';
+
+legendContainer.style.overflow =
+'hidden';
+
+document.body.appendChild(
+    legendContainer
+);
+
+const legendHeader =
+document.createElement('div');
+
+legendHeader.style.padding = '10px';
+
+legendHeader.style.background =
+'#f0f0f0';
+
+legendHeader.style.cursor = 'pointer';
+
+legendHeader.style.fontWeight =
+'bold';
+
+legendHeader.innerHTML =
+'Легенда ▼';
+
+legendContainer.appendChild(
+    legendHeader
+);
+
+const legendContent =
+document.createElement('div');
+
+legendContent.style.display =
+'none';
+
+legendContent.style.padding =
+'10px';
+
+legendContent.style.maxHeight =
+'320px';
+
+legendContent.style.overflowY =
+'auto';
+
+legendContainer.appendChild(
+    legendContent
+);
+
+let legendExpanded = false;
+
+legendHeader.addEventListener(
+    'click',
+    function() {
+
+        legendExpanded =
+            !legendExpanded;
+
+        if (legendExpanded) {
+
+            legendContent.style.display =
+            'block';
+
+            legendHeader.innerHTML =
+            'Легенда ▲';
+
         }
 
+        else {
+
+            legendContent.style.display =
+            'none';
+
+            legendHeader.innerHTML =
+            'Легенда ▼';
+
+        }
+
+    }
+);
+
+// =====================================
+// Обновление легенды
+// =====================================
+
+function updateLegend() {
+
+    legendContent.innerHTML = '';
+
+    let colors = {};
+
+    if (currentMapMode === 'political') {
+        colors = countryColors;
+    }
+
+    if (currentMapMode === 'religion') {
+        colors = religionColors;
+    }
+
+    if (currentMapMode === 'race') {
+        colors = raceColors;
+    }
+
+    if (currentMapMode === 'resource') {
+        colors = resourceColors;
+    }
+
+    if (currentMapMode === 'trade') {
+        colors = tradeZoneColors;
+    }
+
+    Object.entries(colors).forEach(
+        ([name, color]) => {
+
+            const row =
+            document.createElement('div');
+
+            row.style.display = 'flex';
+
+            row.style.alignItems =
+            'center';
+
+            row.style.marginBottom =
+            '5px';
+
+            row.style.cursor =
+            'pointer';
+
+            const box =
+            document.createElement('div');
+
+            box.style.width = '20px';
+            box.style.height = '20px';
+
+            box.style.marginRight =
+            '8px';
+
+            box.style.border =
+            '1px solid black';
+
+            box.style.background =
+            color;
+
+            const text =
+            document.createElement('div');
+
+            text.innerText = name;
+
+            row.appendChild(box);
+            row.appendChild(text);
+
+            // =====================
+            // Наведение на страну
+            // =====================
+
+            row.addEventListener(
+                'mouseenter',
+                function() {
+
+                    hoveredLegendCountry =
+                        name;
+
+                    provincesLayer.changed();
+
+                }
+            );
+
+            row.addEventListener(
+                'mouseleave',
+                function() {
+
+                    hoveredLegendCountry =
+                        null;
+
+                    provincesLayer.changed();
+
+                }
+            );
+
+            legendContent.appendChild(
+                row
+            );
+
+        }
     );
 
-    // Если курсор над провинцией
-    if (feature) {
+}
 
-        hoveredProvinceId = feature.get('id');
+// =====================================
+// Кнопка ID
+// =====================================
+
+const idButton =
+document.createElement('button');
+
+idButton.innerHTML = 'ID';
+
+idButton.style.position = 'absolute';
+
+idButton.style.top = '10px';
+idButton.style.left = '40px';
+
+idButton.style.zIndex = '1000';
+
+document.body.appendChild(idButton);
+
+idButton.addEventListener(
+    'click',
+    function() {
+
+        showProvinceIds =
+            !showProvinceIds;
+
+        provinceLabelsLayer.changed();
 
     }
+);
 
-    // Если курсор вне провинций
-    else {
+// =====================================
+// Поиск
+// =====================================
 
-        hoveredProvinceId = null;
+const searchInput =
+document.createElement('input');
+
+searchInput.placeholder =
+'ID провинции...';
+
+searchInput.style.position =
+'absolute';
+
+searchInput.style.top = '10px';
+searchInput.style.left = '80px';
+
+searchInput.style.zIndex =
+'1000';
+
+document.body.appendChild(
+    searchInput
+);
+
+const searchButton =
+document.createElement('button');
+
+searchButton.innerHTML =
+'Поиск';
+
+searchButton.style.position =
+'absolute';
+
+searchButton.style.top = '10px';
+searchButton.style.left = '230px';
+
+searchButton.style.zIndex =
+'1000';
+
+document.body.appendChild(
+    searchButton
+);
+
+searchButton.addEventListener(
+    'click',
+    function() {
+
+        const searchId =
+            searchInput.value.trim();
+
+        searchedProvinceId =
+            null;
+
+        const features =
+            provincesSource.getFeatures();
+
+        const foundFeature =
+            features.find(feature => {
+
+                return (
+                    String(feature.get('id'))
+                    === searchId
+                );
+
+            });
+
+        if (foundFeature) {
+
+            searchedProvinceId =
+                searchId;
+
+            const center =
+                ol.extent.getCenter(
+                    foundFeature
+                    .getGeometry()
+                    .getExtent()
+                );
+
+            map.getView().animate({
+
+                center: center,
+
+                zoom: 3,
+
+                duration: 700
+
+            });
+
+        }
+
+        provincesLayer.changed();
 
     }
+);
 
-    provincesLayer.changed();
+// =====================================
+// Hover
+// =====================================
 
-});
+map.on(
+    'pointermove',
+    function(event) {
 
-// ===============================
-// Координаты курсора
-// ===============================
+        const feature =
+        map.forEachFeatureAtPixel(
 
-const coordsDiv = document.getElementById('coords');
+            event.pixel,
 
-map.on('pointermove', function(event) {
+            function(feature) {
 
-    const coords = event.coordinate;
+                return feature;
 
-    const x = Math.round(coords[0]);
-    const y = Math.round(coords[1]);
+            }
 
-    coordsDiv.innerHTML =
-        `X: ${x} | Y: ${y}`;
+        );
 
-});
+        if (feature) {
 
-// ===============================
+            hoveredProvinceId =
+                feature.get('id');
+
+        }
+
+        else {
+
+            hoveredProvinceId =
+                null;
+
+        }
+
+        provincesLayer.changed();
+
+    }
+);
+
+// =====================================
 // Popup
-// ===============================
+// =====================================
 
-const popupElement = document.createElement('div');
+const popupElement =
+document.createElement('div');
 
-popupElement.style.position = 'absolute';
-popupElement.style.background = 'white';
-popupElement.style.padding = '8px';
-popupElement.style.border = '1px solid black';
-popupElement.style.borderRadius = '6px';
+popupElement.style.background =
+'white';
+
+popupElement.style.padding =
+'8px';
+
+popupElement.style.border =
+'1px solid black';
+
+popupElement.style.borderRadius =
+'6px';
 
 const popup = new ol.Overlay({
 
@@ -799,146 +1032,123 @@ const popup = new ol.Overlay({
 
 map.addOverlay(popup);
 
-// ===============================
-// Клик по провинции
-// ===============================
+// =====================================
+// Click
+// =====================================
 
-map.on('click', function(event) {
+map.on(
+    'click',
+    function(event) {
 
-    const feature = map.forEachFeatureAtPixel(
+        const feature =
+        map.forEachFeatureAtPixel(
 
-        event.pixel,
+            event.pixel,
 
-        function(feature) {
-            return feature;
+            function(feature) {
+
+                return feature;
+
+            }
+
+        );
+
+        if (feature) {
+
+            selectedProvinceId =
+                feature.get('id');
+
+            const id =
+                selectedProvinceId;
+
+            let html =
+                `ID: ${id}`;
+
+            if (provinceData[id]) {
+
+                html += `
+
+                <br>
+                Название:
+                ${provinceData[id].name}
+
+                <br>
+                Государство:
+                ${provinceData[id].state}
+
+                <br>
+                Религия:
+                ${provinceData[id].religion}
+
+                <br>
+                Раса:
+                ${provinceData[id].race}
+
+                `;
+
+            }
+
+            popupElement.innerHTML =
+                html;
+
+            popup.setPosition(
+                event.coordinate
+            );
+
         }
 
-    );
+        else {
 
-    // Клик по провинции
-    if (feature) {
+            selectedProvinceId =
+                null;
 
-        selectedProvinceId = feature.get('id');
+            popup.setPosition(
+                undefined
+            );
 
-        popupElement.innerHTML =
-            `ID: ${selectedProvinceId}`;
+        }
 
-        popup.setPosition(event.coordinate);
-
-    }
-
-    // Клик по пустоте
-    else {
-
-        selectedProvinceId = null;
-
-        popup.setPosition(undefined);
+        provincesLayer.changed();
 
     }
+);
 
-    provincesLayer.changed();
+// =====================================
+// Координаты
+// =====================================
 
-});
+const coordsDiv =
+document.getElementById('coords');
 
-// ===============================
-// Легенда
-// ===============================
+map.on(
+    'pointermove',
+    function(event) {
 
-const legendDiv =
-document.createElement('div');
+        const coords =
+            event.coordinate;
 
-legendDiv.style.position = 'absolute';
+        coordsDiv.innerHTML =
 
-legendDiv.style.top = '50px';
-legendDiv.style.right = '10px';
+            `X: ${
+                Math.round(coords[0])
+            }
 
-legendDiv.style.zIndex = '1000';
-
-legendDiv.style.background = 'white';
-
-legendDiv.style.padding = '10px';
-
-legendDiv.style.border =
-    '1px solid black';
-
-legendDiv.style.maxHeight = '400px';
-
-legendDiv.style.overflowY = 'auto';
-
-legendDiv.style.minWidth = '220px';
-
-document.body.appendChild(legendDiv);
-
-function updateLegend() {
-
-    let colors = {};
-    let title = '';
-
-    if (currentMapMode === 'political') {
-
-        colors = countryColors;
-        title = 'Государства';
+            | Y: ${
+                Math.round(coords[1])
+            }`;
 
     }
+);
 
-    if (currentMapMode === 'religion') {
+// =====================================
+// Обновление label layer
+// =====================================
 
-        colors = religionColors;
-        title = 'Религии';
+map.getView().on(
+    'change:resolution',
+    function() {
 
-    }
-
-    if (currentMapMode === 'race') {
-
-        colors = raceColors;
-        title = 'Расы';
-
-    }
-
-    if (currentMapMode === 'resource') {
-
-        colors = resourceColors;
-        title = 'Ресурсы';
+        countryLabelsLayer.changed();
 
     }
-
-    if (currentMapMode === 'trade') {
-
-        colors = tradeZoneColors;
-        title = 'Торговые зоны';
-
-    }
-
-    let html =
-        `<b>${title}</b><br><br>`;
-
-    for (const name in colors) {
-
-        html += `
-
-        <div style="
-            display:flex;
-            align-items:center;
-            margin-bottom:4px;
-        ">
-
-            <div style="
-                width:18px;
-                height:18px;
-                background:${colors[name]};
-                border:1px solid black;
-                margin-right:6px;
-                flex-shrink:0;
-            "></div>
-
-            <div>${name}</div>
-
-        </div>
-
-        `;
-
-    }
-
-    legendDiv.innerHTML = html;
-
-}
+);
