@@ -898,3 +898,236 @@ map.on(
 
     }
 );
+
+// =====================================
+// Маркер координат
+// =====================================
+
+let coordinateMarkerEnabled = false;
+
+const markerElement =
+document.createElement('div');
+
+markerElement.style.width = '18px';
+markerElement.style.height = '18px';
+
+markerElement.style.borderRadius = '50%';
+
+markerElement.style.background =
+'#ff0000';
+
+markerElement.style.border =
+'2px solid white';
+
+markerElement.style.boxShadow =
+'0 0 4px black';
+
+markerElement.style.cursor =
+'move';
+
+// =========================
+// Текст координат
+// =========================
+
+const markerCoordsLabel =
+document.createElement('div');
+
+markerCoordsLabel.style.position =
+'absolute';
+
+markerCoordsLabel.style.left =
+'25px';
+
+markerCoordsLabel.style.top =
+'-5px';
+
+markerCoordsLabel.style.whiteSpace =
+'nowrap';
+
+markerCoordsLabel.style.fontSize =
+'14px';
+
+markerCoordsLabel.style.fontWeight =
+'bold';
+
+markerCoordsLabel.style.color =
+'black';
+
+markerCoordsLabel.style.textShadow =
+'0 0 3px white';
+
+markerElement.appendChild(
+    markerCoordsLabel
+);
+
+// =====================================
+// Overlay маркера
+// =====================================
+
+const coordinateMarker =
+new ol.Overlay({
+
+    element: markerElement,
+
+    positioning: 'center-center',
+
+    stopEvent: false
+
+});
+
+map.addOverlay(
+    coordinateMarker
+);
+
+// =====================================
+// Обновление текста координат
+// =====================================
+
+function updateMarkerCoordinates(coords) {
+
+    const x =
+        Math.round(coords[0]);
+
+    const y =
+        Math.round(coords[1]);
+
+    markerCoordsLabel.innerHTML =
+        `X: ${x} | Y: ${y}`;
+
+}
+
+// =====================================
+// Drag логика
+// =====================================
+
+let draggingMarker = false;
+
+markerElement.addEventListener(
+    'mousedown',
+    function(event) {
+
+        event.preventDefault();
+
+        draggingMarker = true;
+
+    }
+);
+
+map.getViewport().addEventListener(
+    'mousemove',
+    function(event) {
+
+        if (!draggingMarker) {
+            return;
+        }
+
+        const pixel =
+            map.getEventPixel(event);
+
+        const coords =
+            map.getCoordinateFromPixel(
+                pixel
+            );
+
+        coordinateMarker.setPosition(
+            coords
+        );
+
+        updateMarkerCoordinates(
+            coords
+        );
+
+    }
+);
+
+window.addEventListener(
+    'mouseup',
+    function() {
+
+        draggingMarker = false;
+
+    }
+);
+
+// =====================================
+// Кнопка включения маркера
+// =====================================
+
+const markerToggleButton =
+document.createElement('button');
+
+markerToggleButton.innerHTML =
+'Коорд';
+
+markerToggleButton.style.position =
+'absolute';
+
+markerToggleButton.style.top =
+'10px';
+
+markerToggleButton.style.left =
+'300px';
+
+markerToggleButton.style.zIndex =
+'1000';
+
+document.body.appendChild(
+    markerToggleButton
+);
+
+// =====================================
+// Включение / выключение
+// =====================================
+
+markerToggleButton.addEventListener(
+    'click',
+    function() {
+
+        coordinateMarkerEnabled =
+            !coordinateMarkerEnabled;
+
+        // =====================
+        // Включение
+        // =====================
+
+        if (coordinateMarkerEnabled) {
+
+            const center =
+                map.getView().getCenter();
+
+            coordinateMarker.setPosition(
+                center
+            );
+
+            updateMarkerCoordinates(
+                center
+            );
+
+            markerElement.style.display =
+                'block';
+
+            markerToggleButton.style.background =
+                '#ffffaa';
+
+        }
+
+        // =====================
+        // Выключение
+        // =====================
+
+        else {
+
+            markerElement.style.display =
+                'none';
+
+            markerToggleButton.style.background =
+                '';
+
+        }
+
+    }
+);
+
+// По умолчанию скрыт
+markerElement.style.display =
+'none';
