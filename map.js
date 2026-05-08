@@ -1677,3 +1677,83 @@ addMarkerToggle(
     'Точки интереса',
     'poi'
 );
+
+// =====================================
+// Toggle координатного маркера
+// =====================================
+
+const coordsRow =
+document.createElement('div');
+
+const coordsCheckbox =
+document.createElement('input');
+
+coordsCheckbox.type =
+'checkbox';
+
+const coordsLabel =
+document.createElement('label');
+
+coordsLabel.innerHTML =
+' Отслеживание координат';
+
+coordsRow.appendChild(
+    coordsCheckbox
+);
+
+coordsRow.appendChild(
+    coordsLabel
+);
+
+markersControl.appendChild(
+    coordsRow
+);
+
+// =====================================
+// Включение / выключение
+// =====================================
+
+coordsCheckbox.addEventListener(
+    'change',
+    function() {
+
+        coordinateMarkerEnabled =
+            coordsCheckbox.checked;
+
+        // =====================
+        // Включение
+        // =====================
+
+        if (
+            coordinateMarkerEnabled
+        ) {
+
+            const center =
+                map.getView().getCenter();
+
+            coordinateMarker.setPosition(
+                center
+            );
+
+            updateMarkerCoordinates(
+                center
+            );
+
+            markerElement.style.display =
+                'block';
+
+        }
+
+        // =====================
+        // Выключение
+        // =====================
+
+        else {
+
+            markerElement.style.display =
+                'none';
+
+        }
+
+    }
+);
