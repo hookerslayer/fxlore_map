@@ -58,6 +58,7 @@ let selectedProvinceId = null;
 let searchedProvinceId = null;
 
 let hoveredLegendCountry = null;
+let countryBorderFeature = null;
 
 let showProvinceIds = false;
 
@@ -297,37 +298,6 @@ function getProvinceStyle(feature) {
     }
 
     // =========================
-    // Наведение на страну в легенде
-    // =========================
-
-    if (
-        hoveredLegendCountry &&
-        provinceData[id] &&
-        provinceData[id].state === hoveredLegendCountry
-    ) {
-
-        return new ol.style.Style({
-
-            fill: new ol.style.Fill({
-
-                color: fillColor
-                    ? fillColor + '88'
-                    : 'rgba(0,0,0,0)'
-
-            }),
-
-            stroke: new ol.style.Stroke({
-
-                color: fillColor || '#000000',
-                width: 3
-
-            })
-
-        });
-
-    }
-
-    // =========================
     // Обычный стиль
     // =========================
 
@@ -361,6 +331,37 @@ const provincesLayer = new ol.layer.Vector({
     source: provincesSource,
 
     style: getProvinceStyle
+
+});
+
+// =====================================
+// Слой границ государств
+// =====================================
+
+const countryBorderSource =
+new ol.source.Vector();
+
+const countryBorderLayer =
+new ol.layer.Vector({
+
+    source: countryBorderSource,
+
+    style: new ol.style.Style({
+
+        fill: new ol.style.Fill({
+
+            color: 'rgba(0,0,0,0)'
+
+        }),
+
+        stroke: new ol.style.Stroke({
+
+            color: '#000000',
+            width: 4
+
+        })
+
+    })
 
 });
 
@@ -415,6 +416,7 @@ const map = new ol.Map({
     
         imageLayer,
         provincesLayer,
+        countryBorderLayer,
         provinceLabelsLayer
     
     ],
@@ -694,35 +696,117 @@ function updateLegend() {
             row.addEventListener(
                 'mouseenter',
                 function() {
-
+            
                     hoveredLegendCountry =
                         name;
+            
+                    countryBorderSource.clear();
+            
+                    const features =
+                        provincesSource.getFeatures();
+            
+                    const countryFeatures =
+                        features.filter(feature => {
+            
+                            const id =
+                                feature.get('id');
+            
+                            return (
+                                provinceData[id] &&
+                                provinceData[id].state === name
+                            );
+            
+                        });
+            
+                    if (countryFeatures.length === 0) {
+                        return;
+                    }
+            
+                    const parser =
+                        new jsts.io.OL3Parser();
+            
+                    const geometries =
+                        countryFeatures.map(feature => {
+            
+                            return parser.read(
+                                feature.getGeometry()
+                            );
+            
+                        });
+            
+                    let unionGeometry =
+                        geometries[0];
+            
+                    for (
+                        let i = 1;
+                        i < geometries.length;
+                        i++
+                    ) {
+            
+                        unionGeometry =
+                            unionGeometry.union(
+                                geometries[i]
+                            );
+            
+                    }
+            
+                    const mergedGeometry =
+                        parser.write(
+                            unionGeometry
+                        );
+            
+                    countryBorderFeature =
+                        new ol.Feature({
+            
+                            geometry:
+                                mergedGeometry
+            
+                        });
+            
+                    countryBorderLayer.setStyle(
+            
+                        new ol.style.Style({
+            
+                            fill:
+                                new ol.style.Fill({
+            
+                                    color:
+                                    'rgba(0,0,0,0)'
+            
+                                }),
+            
+                            stroke:
+                                new ol.style.Stroke({
+            
+                                    color:
+                                        color,
+            
+                                    width: 4
+            
+                                })
+            
+                        })
+            
+                    );
 
-                    provincesLayer.changed();
+        countryBorderSource.addFeature(
+            countryBorderFeature
+        );
 
-                }
-            );
+    }
+);
 
             row.addEventListener(
                 'mouseleave',
                 function() {
-
+            
                     hoveredLegendCountry =
                         null;
-
-                    provincesLayer.changed();
-
+            
+                    countryBorderSource.clear();
+            
                 }
             );
-
-            legendContent.appendChild(
-                row
-            );
-
-        }
-    );
-
-}
 
 // =====================================
 // Кнопка ID
