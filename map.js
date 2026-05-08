@@ -1263,7 +1263,7 @@ function createMarkerStyle(
 
                 radius: 7,
 
-                rotation: Math.PI / 4,
+                rotation: Math.PI / 3,
 
                 fill: new ol.style.Fill({
                     color: '#3c8dff'
