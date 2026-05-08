@@ -171,27 +171,6 @@ const provincesSource = new ol.source.Vector({
 });
 
 // =====================================
-// После загрузки GeoJSON
-// =====================================
-
-provincesSource.once(
-    'featuresloadend',
-    function() {
-
-        createCountryLabels();
-
-        countryLabelsSource.clear();
-
-        countryLabelsSource.addFeatures(
-            countryLabelFeatures
-        );
-
-        countryLabelsLayer.changed();
-
-    }
-);
-
-// =====================================
 // Стили
 // =====================================
 
@@ -290,57 +269,31 @@ function getProvinceStyle(feature) {
     // =========================
     // Выделение
     // =========================
-
+    
     if (
         selectedProvinceId !== null &&
         id === selectedProvinceId
     ) {
-
+    
         return new ol.style.Style({
-
+    
             fill: new ol.style.Fill({
-
-                color: 'rgba(255,255,180,0.8)'
-
+    
+                color: fillColor
+                    ? fillColor + '80'
+                    : 'rgba(255,255,180,0.5)'
+    
             }),
-
+    
             stroke: new ol.style.Stroke({
-
-                color: '#ffff00',
-                width: 2
-
-            })
-
-        });
-
-    }
-
-    // =========================
-    // Наведение мыши
-    // =========================
-
-    if (
-        hoveredProvinceId !== null &&
-        id === hoveredProvinceId
-    ) {
-
-        return new ol.style.Style({
-
-            fill: new ol.style.Fill({
-
-                color: 'rgba(255,255,180,0.6)'
-
-            }),
-
-            stroke: new ol.style.Stroke({
-
+    
                 color: 'rgba(0,0,0,0)',
                 width: 0
-
+    
             })
-
+    
         });
-
+    
     }
 
     // =========================
@@ -412,253 +365,6 @@ const provincesLayer = new ol.layer.Vector({
 });
 
 // =====================================
-// Curved labels государств
-// =====================================
-
-const countryLabelFeatures = [];
-
-function createCountryLabels() {
-
-    countryLabelFeatures.length = 0;
-
-    const stateGroups = {};
-
-    // =========================
-    // Группировка провинций
-    // =========================
-
-    provincesSource.getFeatures().forEach(feature => {
-
-        const id = feature.get('id');
-
-        if (!provinceData[id]) {
-            return;
-        }
-
-        const state =
-            provinceData[id].state;
-
-        if (!state) {
-            return;
-        }
-
-        if (!stateGroups[state]) {
-
-            stateGroups[state] = [];
-
-        }
-
-        stateGroups[state].push(feature);
-
-    });
-
-    // =========================
-    // Создание линий текста
-    // =========================
-
-    Object.entries(stateGroups).forEach(([state, features]) => {
-
-        let minX = Infinity;
-        let minY = Infinity;
-
-        let maxX = -Infinity;
-        let maxY = -Infinity;
-
-        features.forEach(feature => {
-
-            const extent =
-                feature
-                .getGeometry()
-                .getExtent();
-
-            minX = Math.min(minX, extent[0]);
-            minY = Math.min(minY, extent[1]);
-
-            maxX = Math.max(maxX, extent[2]);
-            maxY = Math.max(maxY, extent[3]);
-
-        });
-
-        const width =
-            maxX - minX;
-
-        const height =
-            maxY - minY;
-
-        const centerX =
-            (minX + maxX) / 2;
-
-        const centerY =
-            (minY + maxY) / 2;
-
-        // =====================
-        // Линия текста
-        // =====================
-
-        let lineCoords = [];
-
-        // Горизонтальные страны
-        if (width >= height) {
-
-            lineCoords = [
-
-                [minX, centerY],
-                [maxX, centerY]
-
-            ];
-
-        }
-
-        // Вертикальные страны
-        else {
-
-            lineCoords = [
-
-                [centerX, minY],
-                [centerX, maxY]
-
-            ];
-
-        }
-
-        // =====================
-        // Размер текста
-        // =====================
-
-        const size =
-            Math.max(width, height);
-
-        let fontSize = 12;
-
-        if (size > 2000) {
-            fontSize = 28;
-        }
-
-        else if (size > 1200) {
-            fontSize = 22;
-        }
-
-        else if (size > 700) {
-            fontSize = 18;
-        }
-
-        else if (size > 400) {
-            fontSize = 14;
-        }
-
-        const labelFeature =
-            new ol.Feature({
-
-                geometry:
-                    new ol.geom.LineString(
-                        lineCoords
-                    ),
-
-                state: state,
-
-                size: size,
-
-                fontSize: fontSize
-
-            });
-
-        countryLabelFeatures.push(
-            labelFeature
-        );
-
-    });
-
-}
-
-// =====================================
-// Source label
-// =====================================
-
-const countryLabelsSource =
-new ol.source.Vector({
-
-    features: countryLabelFeatures
-
-});
-
-// =====================================
-// Layer label
-// =====================================
-
-const countryLabelsLayer =
-new ol.layer.Vector({
-
-    source: countryLabelsSource,
-
-    declutter: true,
-
-    style: function(feature) {
-
-        const zoom =
-            map.getView().getZoom();
-
-        // =====================
-        // Скрытие при приближении
-        // =====================
-
-        if (zoom >= 3) {
-            return null;
-        }
-
-        // =====================
-        // Скрытие мелких стран
-        // =====================
-
-        if (
-            zoom <= 1 &&
-            feature.get('size') < 700
-        ) {
-
-            return null;
-
-        }
-
-        const state =
-            feature.get('state');
-
-        const fontSize =
-            feature.get('fontSize');
-
-        return new ol.style.Style({
-
-            text: new ol.style.Text({
-
-                text: state,
-
-                placement: 'line',
-
-                overflow: true,
-
-                font:
-                    `bold ${fontSize}px serif`,
-
-                fill: new ol.style.Fill({
-
-                    color: '#111111'
-
-                }),
-
-                stroke: new ol.style.Stroke({
-
-                    color: '#ffffff',
-                    width: 3
-
-                })
-
-            })
-
-        });
-
-    }
-
-});
-
-// =====================================
 // ID layer
 // =====================================
 
@@ -706,12 +412,11 @@ const map = new ol.Map({
     target: 'map',
 
     layers: [
-
+    
         imageLayer,
         provincesLayer,
-        countryLabelsLayer,
         provinceLabelsLayer
-
+    
     ],
 
     view: new ol.View({
@@ -1144,46 +849,6 @@ searchButton.addEventListener(
 );
 
 // =====================================
-// Hover
-// =====================================
-
-map.on(
-    'pointermove',
-    function(event) {
-
-        const feature =
-        map.forEachFeatureAtPixel(
-
-            event.pixel,
-
-            function(feature) {
-
-                return feature;
-
-            }
-
-        );
-
-        if (feature) {
-
-            hoveredProvinceId =
-                feature.get('id');
-
-        }
-
-        else {
-
-            hoveredProvinceId =
-                null;
-
-        }
-
-        provincesLayer.changed();
-
-    }
-);
-
-// =====================================
 // Popup
 // =====================================
 
@@ -1293,46 +958,6 @@ map.on(
         }
 
         provincesLayer.changed();
-
-    }
-);
-
-// =====================================
-// Координаты
-// =====================================
-
-const coordsDiv =
-document.getElementById('coords');
-
-map.on(
-    'pointermove',
-    function(event) {
-
-        const coords =
-            event.coordinate;
-
-        coordsDiv.innerHTML =
-
-            `X: ${
-                Math.round(coords[0])
-            }
-
-            | Y: ${
-                Math.round(coords[1])
-            }`;
-
-    }
-);
-
-// =====================================
-// Обновление label layer
-// =====================================
-
-map.getView().on(
-    'change:resolution',
-    function() {
-
-        countryLabelsLayer.changed();
 
     }
 );
