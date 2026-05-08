@@ -816,6 +816,22 @@ const popup = new ol.Overlay({
 
 });
 
+// =====================================
+// Ограничение popup
+// =====================================
+
+popupElement.style.maxWidth =
+'260px';
+
+popupElement.style.wordBreak =
+'break-word';
+
+popupElement.style.whiteSpace =
+'normal';
+
+popupElement.style.lineHeight =
+'1.2';
+
 map.addOverlay(popup);
 
 // =====================================
