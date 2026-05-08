@@ -279,9 +279,7 @@ function getProvinceStyle(feature) {
     
             fill: new ol.style.Fill({
     
-                color: fillColor
-                    ? fillColor + '80'
-                    : 'rgba(255,255,180,0.5)'
+                color: 'rgba(255,255,180,0.5)'
     
             }),
     
@@ -290,7 +288,9 @@ function getProvinceStyle(feature) {
                 color: 'rgba(0,0,0,0)',
                 width: 0
     
-            })
+            }),
+    
+            zIndex: 9999
     
         });
     
