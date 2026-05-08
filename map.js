@@ -442,7 +442,7 @@ const map = new ol.Map({
         zoom: 1,
 
         minZoom: 0,
-        maxZoom: 4,
+        maxZoom: 2,
 
         extent: imageExtent
 
