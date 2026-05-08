@@ -171,6 +171,27 @@ const provincesSource = new ol.source.Vector({
 });
 
 // =====================================
+// После загрузки GeoJSON
+// =====================================
+
+provincesSource.once(
+    'featuresloadend',
+    function() {
+
+        createCountryLabels();
+
+        countryLabelsSource.clear();
+
+        countryLabelsSource.addFeatures(
+            countryLabelFeatures
+        );
+
+        countryLabelsLayer.changed();
+
+    }
+);
+
+// =====================================
 // Стили
 // =====================================
 
@@ -779,12 +800,6 @@ layerSelect.addEventListener(
         provincesLayer.changed();
 
         updateLegend();
-
-        createCountryLabels();
-
-        countryLabelsSource.changed();
-
-        countryLabelsLayer.changed();
 
     }
 );
