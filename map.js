@@ -1095,85 +1095,585 @@ window.addEventListener(
     }
 );
 
-// =====================================
-// Кнопка включения маркера
-// =====================================
-
-const markerToggleButton =
-document.createElement('button');
-
-markerToggleButton.innerHTML =
-'Коорд';
-
-markerToggleButton.style.position =
-'absolute';
-
-markerToggleButton.style.top =
-'10px';
-
-markerToggleButton.style.left =
-'300px';
-
-markerToggleButton.style.zIndex =
-'1000';
-
-document.body.appendChild(
-    markerToggleButton
-);
-
-// =====================================
-// Включение / выключение
-// =====================================
-
-markerToggleButton.addEventListener(
-    'click',
-    function() {
-
-        coordinateMarkerEnabled =
-            !coordinateMarkerEnabled;
-
-        // =====================
-        // Включение
-        // =====================
-
-        if (coordinateMarkerEnabled) {
-
-            const center =
-                map.getView().getCenter();
-
-            coordinateMarker.setPosition(
-                center
-            );
-
-            updateMarkerCoordinates(
-                center
-            );
-
-            markerElement.style.display =
-                'block';
-
-            markerToggleButton.style.background =
-                '#ffffaa';
-
-        }
-
-        // =====================
-        // Выключение
-        // =====================
-
-        else {
-
-            markerElement.style.display =
-                'none';
-
-            markerToggleButton.style.background =
-                '';
-
-        }
-
-    }
-);
-
 // По умолчанию скрыт
 markerElement.style.display =
 'none';
+
+// =====================================
+// CSV маркеров
+// =====================================
+
+const markersSheetURL =
+'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHKLat89I0Y8aYJgrEbK9CRsDJdaIlvgLEgtzT8WP8m6nGgd9GShkzLQFLShQwjsg9KXOeCtN0p47_/pub?gid=146982985&single=true&output=csv';
+
+// =====================================
+// Группы маркеров
+// =====================================
+
+const markerGroups = {
+
+    capital: [],
+    city: [],
+    port: [],
+    fortress: [],
+    poi: []
+
+};
+
+// =====================================
+// Layer маркеров
+// =====================================
+
+const markersLayer =
+new ol.layer.Vector({
+
+    source: new ol.source.Vector()
+
+});
+
+map.addLayer(markersLayer);
+
+// =====================================
+// Стили маркеров
+// =====================================
+
+function createMarkerStyle(type, label) {
+
+    let shape;
+
+    // =========================
+    // Столица
+    // =========================
+
+    if (type === 'Столица') {
+
+        shape =
+        new ol.style.RegularShape({
+
+            points: 5,
+
+            radius: 12,
+
+            radius2: 5,
+
+            angle: 0,
+
+            fill: new ol.style.Fill({
+
+                color: '#ffd700'
+
+            }),
+
+            stroke: new ol.style.Stroke({
+
+                color: '#000',
+                width: 1
+
+            })
+
+        });
+
+    }
+
+    // =========================
+    // Город
+    // =========================
+
+    if (type === 'Город') {
+
+        shape =
+        new ol.style.Circle({
+
+            radius: 6,
+
+            fill: new ol.style.Fill({
+
+                color: '#ffd700'
+
+            }),
+
+            stroke: new ol.style.Stroke({
+
+                color: '#000',
+                width: 1
+
+            })
+
+        });
+
+    }
+
+    // =========================
+    // Порт
+    // =========================
+
+    if (type === 'Порт') {
+
+        shape =
+        new ol.style.RegularShape({
+
+            points: 3,
+
+            radius: 6,
+
+            rotation: Math.PI,
+
+            fill: new ol.style.Fill({
+
+                color: '#3399ff'
+
+            }),
+
+            stroke: new ol.style.Stroke({
+
+                color: '#000',
+                width: 1
+
+            })
+
+        });
+
+    }
+
+    // =========================
+    // Форт
+    // =========================
+
+    if (type === 'Форт') {
+
+        shape =
+        new ol.style.RegularShape({
+
+            points: 4,
+
+            radius: 7,
+
+            angle: Math.PI / 4,
+
+            fill: new ol.style.Fill({
+
+                color: '#8b4513'
+
+            }),
+
+            stroke: new ol.style.Stroke({
+
+                color: '#000',
+                width: 1
+
+            })
+
+        });
+
+    }
+
+    // =========================
+    // Крепости
+    // =========================
+
+    if (type.includes('Крепость')) {
+
+        const level =
+        type.replace('Крепость ', '');
+
+        return new ol.style.Style({
+
+            image:
+            new ol.style.RegularShape({
+
+                points: 4,
+
+                radius: 9,
+
+                angle: Math.PI / 4,
+
+                fill: new ol.style.Fill({
+
+                    color: '#777'
+
+                }),
+
+                stroke: new ol.style.Stroke({
+
+                    color: '#000',
+                    width: 1
+
+                })
+
+            }),
+
+            text:
+            new ol.style.Text({
+
+                text: level,
+
+                font: 'bold 10px Arial',
+
+                fill: new ol.style.Fill({
+
+                    color: '#ffffff'
+
+                }),
+
+                offsetY: 1
+
+            })
+
+        });
+
+    }
+
+    // =========================
+    // Точка интереса
+    // =========================
+
+    if (type === 'Точка интереса') {
+
+        return new ol.style.Style({
+
+            image:
+            new ol.style.RegularShape({
+
+                points: 4,
+
+                radius: 8,
+
+                angle: 0,
+
+                fill: new ol.style.Fill({
+
+                    color: '#cc0000'
+
+                }),
+
+                stroke: new ol.style.Stroke({
+
+                    color: '#000',
+                    width: 1
+
+                })
+
+            }),
+
+            text:
+            new ol.style.Text({
+
+                text: '?',
+
+                font: 'bold 12px Arial',
+
+                fill: new ol.style.Fill({
+
+                    color: '#ffffff'
+
+                })
+
+            })
+
+        });
+
+    }
+
+    return new ol.style.Style({
+
+        image: shape,
+
+        text:
+        type !== 'Порт' &&
+        map.getView().getZoom() >= 2
+
+        ? new ol.style.Text({
+
+            text: label,
+
+            font: '13px Arial',
+
+            offsetX: 15,
+
+            textAlign: 'left',
+
+            fill: new ol.style.Fill({
+
+                color: '#000'
+
+            }),
+
+            stroke: new ol.style.Stroke({
+
+                color: '#fff',
+                width: 3
+
+            })
+
+        })
+
+        : null
+
+    });
+
+}
+
+// =====================================
+// Загрузка маркеров
+// =====================================
+
+fetch(markersSheetURL)
+.then(r => r.text())
+.then(csv => {
+
+    const rows =
+    csv.trim().split('\n').slice(1);
+
+    rows.forEach(row => {
+
+        const cols =
+        row.split(',');
+
+        const name = cols[8];
+        const description = cols[9];
+
+        const x =
+        parseFloat(cols[10]);
+
+        const y =
+        parseFloat(cols[11]);
+
+        const type =
+        cols[12];
+
+        if (
+            !name ||
+            isNaN(x) ||
+            isNaN(y)
+        ) {
+            return;
+        }
+
+        const feature =
+        new ol.Feature({
+
+            geometry:
+            new ol.geom.Point([x, y]),
+
+            markerName: name,
+            markerDescription: description,
+            markerType: type
+
+        });
+
+        feature.setStyle(
+            createMarkerStyle(
+                type,
+                name
+            )
+        );
+
+        markersLayer
+        .getSource()
+        .addFeature(feature);
+
+        // =====================
+        // Группы
+        // =====================
+
+        if (type === 'Столица') {
+            markerGroups.capital.push(feature);
+        }
+
+        else if (type === 'Город') {
+            markerGroups.city.push(feature);
+        }
+
+        else if (type === 'Порт') {
+            markerGroups.port.push(feature);
+        }
+
+        else if (
+            type === 'Форт' ||
+            type.includes('Крепость')
+        ) {
+            markerGroups.fortress.push(feature);
+        }
+
+        else if (
+            type === 'Точка интереса'
+        ) {
+            markerGroups.poi.push(feature);
+        }
+
+    });
+
+});
+
+// =====================================
+// Popup маркеров
+// =====================================
+
+map.on('click', function(event) {
+
+    map.forEachFeatureAtPixel(
+
+        event.pixel,
+
+        function(feature) {
+
+            if (
+                !feature.get(
+                    'markerName'
+                )
+            ) {
+                return;
+            }
+
+            popupElement.innerHTML = `
+
+            <b>
+            ${feature.get('markerName')}
+            </b>
+
+            <br><br>
+
+            Тип:
+            ${feature.get('markerType')}
+
+            <br><br>
+
+            ${feature.get('markerDescription')}
+
+            `;
+
+            popup.setPosition(
+                event.coordinate
+            );
+
+        }
+
+    );
+
+});
+
+// =====================================
+// Контрол маркеров
+// =====================================
+
+const markersControl =
+document.createElement('div');
+
+markersControl.style.position =
+'absolute';
+
+markersControl.style.top =
+'90px';
+
+markersControl.style.left =
+'10px';
+
+markersControl.style.background =
+'white';
+
+markersControl.style.padding =
+'10px';
+
+markersControl.style.border =
+'1px solid #999';
+
+markersControl.style.borderRadius =
+'6px';
+
+markersControl.style.zIndex =
+'1000';
+
+document.body.appendChild(
+    markersControl
+);
+
+// =====================================
+// Checkbox helper
+// =====================================
+
+function addMarkerToggle(
+    title,
+    key
+) {
+
+    const row =
+    document.createElement('div');
+
+    const checkbox =
+    document.createElement('input');
+
+    checkbox.type = 'checkbox';
+    checkbox.checked = true;
+
+    const label =
+    document.createElement('label');
+
+    label.innerHTML =
+    ' ' + title;
+
+    row.appendChild(checkbox);
+    row.appendChild(label);
+
+    markersControl.appendChild(
+        row
+    );
+
+    checkbox.addEventListener(
+        'change',
+        function() {
+
+            markerGroups[key]
+            .forEach(feature => {
+
+                feature.setStyle(
+
+                    checkbox.checked
+
+                    ? createMarkerStyle(
+                        feature.get(
+                            'markerType'
+                        ),
+                        feature.get(
+                            'markerName'
+                        )
+                    )
+
+                    : null
+
+                );
+
+            });
+
+        }
+    );
+
+}
+
+// =====================================
+// Toggle группы
+// =====================================
+
+addMarkerToggle(
+    'Столицы',
+    'capital'
+);
+
+addMarkerToggle(
+    'Города',
+    'city'
+);
+
+addMarkerToggle(
+    'Порты',
+    'port'
+);
+
+addMarkerToggle(
+    'Крепости',
+    'fortress'
+);
+
+addMarkerToggle(
+    'Точки интереса',
+    'poi'
+);
