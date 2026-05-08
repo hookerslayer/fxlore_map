@@ -659,17 +659,6 @@ new ol.layer.Vector({
 });
 
 // =====================================
-// Source label
-// =====================================
-
-const countryLabelsSource =
-new ol.source.Vector({
-
-    features: countryLabelFeatures
-
-});
-
-// =====================================
 // Layer label
 // =====================================
 
