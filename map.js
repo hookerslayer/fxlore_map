@@ -1263,7 +1263,7 @@ function createMarkerStyle(
 
                 radius: 7,
 
-                rotation: Math.PI / 2,
+                rotation: Math.PI / 4,
 
                 fill: new ol.style.Fill({
                     color: '#3c8dff'
@@ -1418,7 +1418,9 @@ fetch(markersSheetURL)
         row.split(',');
 
         const name = cols[8];
-        const description = cols[9];
+
+        const description =
+        cols[9];
 
         const x =
         parseFloat(cols[10]);
@@ -1444,17 +1446,13 @@ fetch(markersSheetURL)
             new ol.geom.Point([x, y]),
 
             markerName: name,
-            markerDescription: description,
+
+            markerDescription:
+            description,
+
             markerType: type
 
         });
-
-        feature.setStyle(
-            createMarkerStyle(
-                type,
-                name
-            )
-        );
 
         markersLayer
         .getSource()
@@ -1465,59 +1463,80 @@ fetch(markersSheetURL)
         // =====================
 
         if (type === 'Столица') {
-            markerGroups.capital.push(feature);
+
+            markerGroups
+            .capital.push(feature);
+
         }
 
         else if (type === 'Город') {
-            markerGroups.city.push(feature);
+
+            markerGroups
+            .city.push(feature);
+
         }
 
         else if (type === 'Порт') {
-            markerGroups.port.push(feature);
+
+            markerGroups
+            .port.push(feature);
+
         }
 
         else if (
             type === 'Форт' ||
             type.includes('Крепость')
         ) {
-            markerGroups.fortress.push(feature);
+
+            markerGroups
+            .fortress.push(feature);
+
         }
 
         else if (
             type === 'Точка интереса'
         ) {
-            markerGroups.poi.push(feature);
+
+            markerGroups
+            .poi.push(feature);
+
         }
 
     });
 
-});
+    // =================================
+    // Принудительное обновление стилей
+    // =================================
 
-// ПРОВЕРИТЬ
-setTimeout(() => {
+    setTimeout(() => {
 
-    markersSource.getFeatures()
-    .forEach(feature => {
+        markersLayer
+        .getSource()
+        .getFeatures()
 
-        feature.setStyle(
+        .forEach(feature => {
 
-            createMarkerStyle(
+            feature.setStyle(
 
-                feature.get(
-                    'markerType'
-                ),
+                createMarkerStyle(
 
-                feature.get(
-                    'markerName'
+                    feature.get(
+                        'markerType'
+                    ),
+
+                    feature.get(
+                        'markerName'
+                    )
+
                 )
 
-            )
+            );
 
-        );
+        });
 
-    });
+    }, 50);
 
-}, 100);
+});
 
 // =====================================
 // Popup маркеров
