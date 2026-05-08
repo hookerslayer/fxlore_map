@@ -1002,18 +1002,54 @@ function updateMarkerCoordinates(coords) {
 
 let draggingMarker = false;
 
+// =====================================
+// Отключение перемещения карты
+// =====================================
+
+function setMapDragEnabled(enabled) {
+
+    map.getInteractions().forEach(
+        function(interaction) {
+
+            if (
+                interaction instanceof
+                ol.interaction.DragPan
+            ) {
+
+                interaction.setActive(
+                    enabled
+                );
+
+            }
+
+        }
+    );
+
+}
+
+// =====================================
+// Начало перетаскивания
+// =====================================
+
 markerElement.addEventListener(
     'mousedown',
     function(event) {
 
         event.preventDefault();
+        event.stopPropagation();
 
         draggingMarker = true;
+
+        setMapDragEnabled(false);
 
     }
 );
 
-map.getViewport().addEventListener(
+// =====================================
+// Перетаскивание
+// =====================================
+
+window.addEventListener(
     'mousemove',
     function(event) {
 
@@ -1040,11 +1076,21 @@ map.getViewport().addEventListener(
     }
 );
 
+// =====================================
+// Завершение
+// =====================================
+
 window.addEventListener(
     'mouseup',
     function() {
 
+        if (!draggingMarker) {
+            return;
+        }
+
         draggingMarker = false;
+
+        setMapDragEnabled(true);
 
     }
 );
