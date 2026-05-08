@@ -1146,15 +1146,11 @@ function createMarkerStyle(
     name
 ) {
 
-    const zoom =
-        map.getView().getZoom();
-
     // =========================
     // Показывать ли подпись
     // =========================
-
+    
     const showLabel =
-        zoom >= 2 &&
         type !== 'Порт';
 
     // =========================
@@ -1559,20 +1555,27 @@ map.on('click', function(event) {
             }
 
             popupElement.innerHTML = `
-
+            
+            <div style="
+            line-height:1.2;
+            font-size:14px;
+            ">
+            
             <b>
             ${feature.get('markerName')}
             </b>
-
-            <br><br>
-
+            
+            <br>
+            
             Тип:
             ${feature.get('markerType')}
-
-            <br><br>
-
+            
+            <br>
+            
             ${feature.get('markerDescription')}
-
+            
+            </div>
+            
             `;
 
             popup.setPosition(
