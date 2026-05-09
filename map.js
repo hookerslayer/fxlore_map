@@ -460,7 +460,11 @@ layerSelect.innerHTML = `
 
 `;
 
-document.body.appendChild(layerSelect);
+mobileSidebar.appendChild(layerSelect);
+
+prepareMobileElement(
+    layerSelect
+);
 
 layerSelect.addEventListener(
     'change',
@@ -509,7 +513,11 @@ legendContainer.style.maxHeight =
 legendContainer.style.overflow =
 'hidden';
 
-document.body.appendChild(
+mobileSidebar.appendChild(
+    legendContainer
+);
+
+prepareMobileElement(
     legendContainer
 );
 
@@ -677,7 +685,13 @@ idButton.style.left = '40px';
 
 idButton.style.zIndex = '1000';
 
-document.body.appendChild(idButton);
+mobileSidebar.appendChild(
+    idButton
+);
+
+prepareMobileElement(
+    idButton
+);
 
 idButton.addEventListener(
     'click',
@@ -710,7 +724,11 @@ searchInput.style.left = '80px';
 searchInput.style.zIndex =
 '1000';
 
-document.body.appendChild(
+mobileSidebar.appendChild(
+    searchInput
+);
+
+prepareMobileElement(
     searchInput
 );
 
@@ -729,7 +747,11 @@ searchButton.style.left = '230px';
 searchButton.style.zIndex =
 '1000';
 
-document.body.appendChild(
+mobileSidebar.appendChild(
+    searchButton
+);
+
+prepareMobileElement(
     searchButton
 );
 
@@ -1635,7 +1657,11 @@ markersControl.style.borderRadius =
 markersControl.style.zIndex =
 '1000';
 
-document.body.appendChild(
+mobileSidebar.appendChild(
+    markersControl
+);
+
+prepareMobileElement(
     markersControl
 );
 
@@ -1910,4 +1936,79 @@ mobileStyle.innerHTML = `
 
 document.head.appendChild(
     mobileStyle
+);
+
+// =====================================
+// Mobile sidebar
+// =====================================
+
+const mobileSidebar =
+document.createElement('div');
+
+mobileSidebar.id =
+'mobileSidebar';
+
+document.body.appendChild(
+    mobileSidebar
+);
+
+// =====================================
+// Mobile layout helper
+// =====================================
+
+function prepareMobileElement(el) {
+
+    el.style.position =
+    'relative';
+
+    el.style.top =
+    'unset';
+
+    el.style.left =
+    'unset';
+
+    el.style.right =
+    'unset';
+
+    el.style.marginBottom =
+    '12px';
+
+    el.style.width =
+    '100%';
+
+    el.style.boxSizing =
+    'border-box';
+
+}
+
+// =====================================
+// Кнопка меню
+// =====================================
+
+const mobileMenuButton =
+document.createElement('button');
+
+mobileMenuButton.id =
+'mobileMenuButton';
+
+mobileMenuButton.innerHTML =
+'☰';
+
+document.body.appendChild(
+    mobileMenuButton
+);
+
+// =====================================
+// Toggle
+// =====================================
+
+mobileMenuButton.addEventListener(
+    'click',
+    function() {
+
+        mobileSidebar.classList.toggle(
+            'open'
+        );
+
+    }
 );
