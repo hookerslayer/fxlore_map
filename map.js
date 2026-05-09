@@ -1810,3 +1810,104 @@ coordsCheckbox.addEventListener(
 
     }
 );
+
+// =====================================
+// Mobile menu CSS
+// =====================================
+
+const mobileStyle =
+document.createElement('style');
+
+mobileStyle.innerHTML = `
+
+/* =========================
+   Кнопка меню
+========================= */
+
+#mobileMenuButton {
+
+    display: none;
+
+    position: absolute;
+
+    top: 10px;
+    left: 10px;
+
+    z-index: 5000;
+
+    width: 42px;
+    height: 42px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    background: white;
+
+    font-size: 28px;
+
+    box-shadow:
+    0 0 6px rgba(0,0,0,0.4);
+
+}
+
+/* =========================
+   Боковая панель
+========================= */
+
+#mobileSidebar {
+
+    position: absolute;
+
+    top: 0;
+    left: -320px;
+
+    width: 300px;
+    height: 100%;
+
+    background: white;
+
+    z-index: 4999;
+
+    overflow-y: auto;
+
+    transition: left 0.25s;
+
+    box-shadow:
+    0 0 10px rgba(0,0,0,0.5);
+
+    padding: 15px;
+
+    box-sizing: border-box;
+
+}
+
+/* =========================
+   Открытое меню
+========================= */
+
+#mobileSidebar.open {
+
+    left: 0;
+
+}
+
+/* =========================
+   Mobile only
+========================= */
+
+@media (max-width: 768px) {
+
+    #mobileMenuButton {
+
+        display: block;
+
+    }
+
+}
+
+`;
+
+document.head.appendChild(
+    mobileStyle
+);
