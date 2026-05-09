@@ -497,16 +497,12 @@ mobileStyle.innerHTML = `
 }
 
 /* =========================
-   Mobile only
+   Кнопка меню всегда видна
 ========================= */
 
-@media (max-width: 768px) {
+#mobileMenuButton {
 
-    #mobileMenuButton {
-
-        display: block;
-
-    }
+    display: block;
 
 }
 
